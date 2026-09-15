@@ -21,21 +21,23 @@ The maintainers' installation guide: [PanDA server](https://panda-wms.readthedoc
 
 1. **Assessment.** Record the installed commit (`pip show panda-server`, `direct_url.json`) and choose the target: a release tag, or a master commit when a needed fix is not yet released. Read the delta for the four things that decide the shape of an upgrade: the minimum database schema version (`pandaserver/taskbuffer/PandaDBSchemaInfo.py`, checked by the server's and JEDI's `SchemaChecker.py`), the dependency pins (`pyproject.toml`, panda-common first), the configuration and service templates (`templates/`), and the entry points harvester, the pilot and iDDS call (`pandaserver/api/v1`, the legacy dispatcher). A schema change means the database patch from the panda-database repository before the code. Write the pending-upgrade section from the reading and circulate it.
 
-2. **Timing and notice.** A lull in production, between campaigns where possible. The restart interrupts the server for about a minute; harvester and the pilot retry their calls, and the nightly rotation restart shows the services tolerate it. Notice to the production operations list before and after.
+2. **Integrity gate.** Before the target touches the host, it is installed on another host into a throwaway virtual environment of the same Python, with the production `pip freeze` as pip constraints, so that the result is the package set the real install produces: `pip check` must pass and the constraint solve must move no package but panda-server and panda-common. In that environment, with the production settings that shape imports (the database backend, the schema names, the log directory), [`gate/import_walk.py`](gate/import_walk.py) imports every module of `pandaserver`, `pandajedi` and `pandacommon`, and [`gate/config_load.py`](gate/config_load.py) imports every class and module the production configuration names: the `modConfig` targets of `panda_jedi.cfg`, the enabled daemons of `panda_server.cfg`, the adder, setupper and closer plugins, and the ePIC modules. A failure outside test modules and unconfigured optional integrations stops the upgrade at that commit. The fix that motivates the upgrade is confirmed present in the installed code. [`gate/run-gate.sh`](gate/run-gate.sh) runs the gate; its inputs are the production `pip freeze` and the two configuration files without their password lines. The gate does not reach SQL that is wrong only at run time on this backend; the verification step and the rollback copy cover that.
 
-3. **Preservation.** `cp -a /opt/panda /opt/panda-backup-<date>` (about 650 MB; the root filesystem must have the room) and `pip freeze > /opt/panda-backup-<date>/pip-freeze.txt`. The copy holds the code, the live configuration and the previous templates, and is the rollback.
+3. **Timing and notice.** A lull in production, between campaigns where possible. The restart interrupts the server for about a minute; harvester and the pilot retry their calls, and the nightly rotation restart shows the services tolerate it. Notice to the production operations list before and after.
 
-4. **Installation.** In the virtual environment, `pip install "git+https://github.com/PanDAWMS/panda-server.git@<tag or commit>"`, which brings panda-common at the pinned version; no other package is upgraded. Confirm with `pip show panda-server` and `pip check`.
+4. **Preservation.** `cp -a /opt/panda /opt/panda-backup-<date>` (about 650 MB; the root filesystem must have the room) and `pip freeze > /opt/panda-backup-<date>/pip-freeze.txt`. The copy holds the code, the live configuration and the previous templates, and is the rollback.
 
-5. **Configuration.** The install writes the new templates as `.rpmnew` files beside the live ones. Diff each new `.rpmnew` against the previous one (kept in the copy) to see what the maintainers changed, apply the changes that apply here to the live file, and record each with its motivation in the pending-upgrade section. A live file is never replaced by a template.
+5. **Installation.** In the virtual environment, `pip install "git+https://github.com/PanDAWMS/panda-server.git@<tag or commit>"`, which brings panda-common at the pinned version; no other package is upgraded. Confirm with `pip show panda-server` and `pip check`.
 
-6. **Restart.** `systemctl restart panda panda_httpd panda_daemon panda_jedi panda_mcp`. The journal must show `DB schema check: OK` for the server and for JEDI.
+6. **Configuration.** The install writes the new templates as `.rpmnew` files beside the live ones. Diff each new `.rpmnew` against the previous one (kept in the copy) to see what the maintainers changed, apply the changes that apply here to the live file, and record each with its motivation in the pending-upgrade section. A live file is never replaced by a template.
 
-7. **Verification.** The services are active; `http://pandaserver01.sdcc.bnl.gov:25080/api/v1/system/is_alive` returns 200; `/var/log/panda/panda_*_stderr.log` and the JEDI log carry no traceback after a few cycles; harvester workers keep appearing and jobs keep dispatching, read from the production monitor; a canary task on a production queue runs to completion; the fix that motivated the upgrade is exercised; the ePIC modules registered in JEDI report in their logs. An hour of watching.
+7. **Restart.** `systemctl restart panda panda_httpd panda_daemon panda_jedi panda_mcp`. The journal must show `DB schema check: OK` for the server and for JEDI.
 
-8. **Rollback.** Stop the services, set the failed tree aside, restore the copy, start: `mv /opt/panda /opt/panda-failed-<date>; cp -a /opt/panda-backup-<date> /opt/panda`. Minutes. The copy carries the configuration as it was.
+8. **Verification.** The services are active; `http://pandaserver01.sdcc.bnl.gov:25080/api/v1/system/is_alive` returns 200; `/var/log/panda/panda_*_stderr.log` and the JEDI log carry no traceback after a few cycles; harvester workers keep appearing and jobs keep dispatching, read from the production monitor; a canary task on a production queue runs to completion; the fix that motivated the upgrade is exercised; the ePIC modules registered in JEDI report in their logs. An hour of watching.
 
-9. **Record.** Log the upgrade in [CHANGES.md](CHANGES.md): the date, the versions, the configuration changes with their motivation, the verification, the rollback copy and any deviation from the plan. Clear the pending-upgrade section.
+9. **Rollback.** Stop the services, set the failed tree aside, restore the copy, start: `mv /opt/panda /opt/panda-failed-<date>; cp -a /opt/panda-backup-<date> /opt/panda`. Minutes. The copy carries the configuration as it was.
+
+10. **Record.** Log the upgrade in [CHANGES.md](CHANGES.md): the date, the versions, the configuration changes with their motivation, the verification, the rollback copy and any deviation from the plan. Clear the pending-upgrade section.
 
 ## ePIC modules in JEDI
 
@@ -65,6 +67,10 @@ Changes to panda-server itself go to the maintainers as pull requests. The serve
 The target is a state of master rather than a release: no release carries the fix, the next release has no date, and the upgrade is done in the present lull between campaigns rather than deferred. The commits past 1.0.4 are, at writing, the maintainers' type-annotation sweep, the workflows4 branch and the event fixes. The canary task and the tree copy bound the exposure.
 
 Two open pull requests on panda-server fix unaliased subqueries for PostgreSQL, the backend here (#790, #791). The target commit is chosen at execution to include what has been merged by then.
+
+### Integrity gate result
+
+Run 2026-09-15 on `pandaserver02` against 09c8b553 under production's package versions: the constraint solve moved panda-server and panda-common only, `pip check` clean; 298 modules imported, the four failures being two test modules and the Kafka publisher and processor, which need `confluent_kafka`, not installed on production and not configured; all 42 configured targets loaded (the 20 `modConfig` entries, 16 daemon modules, 5 plugins, the ePIC throttler); `update_event_ranges` builds its response as a dict.
 
 ### Configuration changes
 
