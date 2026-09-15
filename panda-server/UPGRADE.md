@@ -62,6 +62,8 @@ Changes to panda-server itself go to the maintainers as pull requests. The serve
 | Templates | | one line in `panda_server-httpd.conf` (below) |
 | Entry points | | none removed from the legacy dispatcher; the `api/v1` changes are type annotations, the event fix, and a parameter rename in the task API's asynchronous requests (`async_id`) |
 
+The target is a state of master rather than a release: no release carries the fix, the next release has no date, and the upgrade is done in the present lull between campaigns rather than deferred. The commits past 1.0.4 are, at writing, the maintainers' type-annotation sweep, the workflows4 branch and the event fixes. The canary task and the tree copy bound the exposure.
+
 Two open pull requests on panda-server fix unaliased subqueries for PostgreSQL, the backend here (#790, #791). The target commit is chosen at execution to include what has been merged by then.
 
 ### Configuration changes
