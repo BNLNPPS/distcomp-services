@@ -4,12 +4,12 @@ Procedures and change records for the distributed computing services hosted at B
 
 | Service | Host | Documents |
 |---|---|---|
-| PanDA server and JEDI | `pandaserver01.sdcc.bnl.gov` | [panda-server/UPGRADE.md](panda-server/UPGRADE.md), [panda-server/CHANGES.md](panda-server/CHANGES.md), [notes/2026-09-panda-server-upgrade.md](notes/2026-09-panda-server-upgrade.md) |
+| PanDA server and JEDI | `pandaserver01.sdcc.bnl.gov` | [panda-server/UPGRADE.md](panda-server/UPGRADE.md), [panda-server/CHANGES.md](panda-server/CHANGES.md) |
 | harvester | `pandaharvester01.sdcc.bnl.gov` | |
 
 ## Conventions
 
-- A procedure document is standing and revised in place. Each upgrade has a note under `notes/`, one file per upgrade, written at planning and completed at execution.
+- A procedure document is standing and revised in place.
 - A pending change is planned in the service's procedure document and circulated to PanDA operations at BNL and the maintainers of the software for comment before execution.
 - Every change to a service is logged in the service's `CHANGES.md`, newest first: the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. The log is the shared view of the service's state.
 - Plain Markdown, no build. Changes by direct commit or pull request.
