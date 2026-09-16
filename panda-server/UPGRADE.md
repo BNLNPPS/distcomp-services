@@ -25,7 +25,7 @@ The maintainers' installation guide: [PanDA server](https://panda-wms.readthedoc
 
 3. **Timing and notice.** A lull in production, between campaigns where possible. The restart interrupts the server for about a minute; harvester and the pilot retry their calls, and the nightly rotation restart shows the services tolerate it. Notice to the production operations list before and after.
 
-4. **Preservation.** `cp -a /opt/panda /opt/panda-backup-<date>` (about 650 MB; the root filesystem must have the room) and `pip freeze > /opt/panda-backup-<date>/pip-freeze.txt`. The copy holds the code, the live configuration and the previous templates, and is the rollback.
+4. **Preservation.** `cp -a /opt/panda /opt/panda-backup-<date>` (about 650 MB; the root filesystem must have the room) and `pip freeze > /opt/panda-backup-<date>/pip-freeze.txt`. The copy holds the code, the live configuration and the previous templates, and is the rollback; it is proven before anything changes, as Reversibility below says (an empty `rsync --dry-run` and an import from the copy's interpreter).
 
 5. **Installation.** In the virtual environment, `pip install "git+https://github.com/PanDAWMS/panda-server.git@<tag or commit>"`, which brings panda-common at the pinned version; no other package is upgraded. Confirm with `pip show panda-server` and `pip check`.
 
@@ -35,7 +35,23 @@ The maintainers' installation guide: [PanDA server](https://panda-wms.readthedoc
 
 8. **Verification.** The services are active; `http://pandaserver01.sdcc.bnl.gov:25080/api/v1/system/is_alive` returns 200; `/var/log/panda/panda_*_stderr.log` and the JEDI log carry no traceback after a few cycles; harvester workers keep appearing and jobs keep dispatching, read from the production monitor; a canary task on a production queue runs to completion; the fix that motivated the upgrade is exercised; the ePIC modules registered in JEDI report in their logs. An hour of watching.
 
-9. **Rollback.** Stop the services, set the failed tree aside, restore the copy, start: `mv /opt/panda /opt/panda-failed-<date>; cp -a /opt/panda-backup-<date> /opt/panda`. Minutes. The copy carries the configuration as it was.
+9. **Rollback.** Stop the services, set the failed tree aside, restore the copy, start: `systemctl stop panda_jedi panda_daemon panda_mcp panda_httpd panda; mv /opt/panda /opt/panda-failed-<date>; cp -a /opt/panda-backup-<date> /opt/panda; systemctl start panda panda_httpd panda_daemon panda_jedi panda_mcp`, then the verification of step 8 again. Minutes. The copy carries the configuration as it was.
+
+## Reversibility
+
+The upgrade is reversible because everything it changes on the host lives under one tree, `/opt/panda`, and the copy of step 4 is that tree entire: the virtual environment, the installed packages, the live configuration files and the previous templates. The virtual environment's own paths name `/opt/panda`, so the copy runs only when restored to that path, which is what the rollback does. What the upgrade touches outside the tree, and how each is reversed:
+
+| Outside the tree | Reversal |
+|---|---|
+| Database schema | Nothing: the minimum schema is unchanged (0.1.1 both sides), the code writes no schema, and the rollback needs no database action. A future upgrade with a schema change is a different procedure: the database patch and its reverse are written into the pending-upgrade section before execution, and the copy alone is no longer the rollback. |
+| `DOMA_PANDA.config` rows for the throttler | Inert without the module: the restored tree has no `swf_epicprod` and registers the generic throttler, which never reads them. Removed only if wanted, by the `DELETE` recorded in the change log beside the `INSERT`. |
+| Logs under `/var/log/panda` | Untouched; the new code's log files (`panda-EpicProdJobThrottler.log`) are left as a record. |
+| Harvester, the pilot, iDDS, the monitor | Clients of the HTTP API only; they retry through the restart either way and hold no state from the upgrade. |
+| Jobs and tasks in the database | Unchanged by a restart: tasks in every state (paused, finishing, ready) survive the nightly rotation restart daily, and the throttled and running jobs of the moment are rows. |
+
+Before the install (part of step 4), the copy is proven, not assumed: `rsync -a --dry-run --itemize-changes /opt/panda/ /opt/panda-backup-<date>/` prints nothing, and `/opt/panda-backup-<date>/bin/python -c "import pandaserver, pandajedi, pandacommon"` runs (the interpreter in the copy resolves its packages through the copied `pyvenv.cfg` and `site-packages`). The root filesystem must hold the copy and, on a rollback, the failed tree beside it (two tree sizes free). Older copies are kept until the upgrade is logged as verified, then the oldest may go.
+
+The rollback decision is taken on the verification of step 8, at any of: a schema check that does not read `OK`, a traceback in a `panda_*_stderr.log` or the JEDI log that recurs across cycles, `is_alive` not answering 200, no harvester worker appearing or no job dispatching within fifteen minutes of the restart on a queue with work, the ePIC throttler failing to import (JEDI would then register nothing for the epic and wlcg VOs and generate no jobs: the JEDI log names it at start). The rollback is executed at once on any of these and diagnosed afterward on the failed tree, which is kept; it is not attempted in place. A rollback is itself logged in CHANGES.md with the trigger.
 
 10. **Record.** Log the upgrade in [CHANGES.md](CHANGES.md): the date, the versions, the configuration changes with their motivation, the verification, the rollback copy and any deviation from the plan. Clear the pending-upgrade section.
 
@@ -76,7 +92,7 @@ Run 2026-09-15 on `pandaserver02` against 09c8b553 under production's package ve
 
 1. `panda_server-httpd.conf`: in the cache directory block, `Header set Content-Encoding gzip` becomes `Header set Content-Encoding gzip "expr=%{REQUEST_URI} !~ m#\.log$#"`, the maintainers' change of 2026-06-16 (b207a698): log files in the cache are served without the gzip header. The block added locally on 2026-08-21 for `_gz.out` files is unchanged.
 2. `panda_jedi.cfg`, section `[jobthrottle]`: both entries of `modConfig` become the ePIC engine, `wlcg:any:swf_epicprod.jedi.EpicProdJobThrottler:EpicProdJobThrottler,epic:any:swf_epicprod.jedi.EpicProdJobThrottler:EpicProdJobThrottler`. Production tasks carry VO `wlcg`: the server was commissioned with the generic JEDI plugins under that key, and the production team's recipe and PCS's Standard Production configuration both submit `vo wlcg`, `prodSourceLabel managed` (every `epicproduction` task of the last 60 days). The `epic` VO carries the test paths (canary probes, GPU tests, client-API test submissions). JEDI's throttler statistics are per VO, so each entry sees only its own VO's jobs at a site; with production on one VO that is the reading wanted. Registering `epic` alone, as first circulated, would have paced the tests and none of production.
-3. `DOMA_PANDA.config`: component `epic_job_throttler`, app `jedi`, key `MODE`, value `observe`, one row per VO (`wlcg`, `epic`). Per-site limits are added later from the observed readings, for `wlcg` first.
+3. `DOMA_PANDA.config`: component `epic_job_throttler`, app `jedi`, key `MODE`, value `observe`, type `str`, one row per VO (`wlcg`, `epic`), with a `descr`; the table's existing rows (`task_setup`, `job_timeout`) are the model, and `getConfigValue` reads the row by component, key, app and VO and casts by `type`. Per-site limits are added later from the observed readings, for `wlcg` first, as `int` rows (`NQUEUELIMIT_<site>`, `NRUNNINGCAP_<site>`, `NQUEUECAP_<site>`) and `float` (`THROTTLE_THRESHOLD_<site>`). The `INSERT` statements and their `DELETE` counterparts go into the change log.
 4. The swf-epicprod package installed in the virtual environment at a pinned commit, `pip install "git+https://github.com/BNLNPPS/swf-epicprod.git@<commit>"`; it declares no dependencies, and the throttler module imports only `pandacommon` and `pandajedi`.
 5. The record `panda_jedi-0.6.4.dist-info` is removed from `site-packages` before the install. It describes a package whose files panda-server overwrote in June (the files on disk match the panda-server record, not this one); left in place, a `pip uninstall panda-jedi` would delete live JEDI files.
 
