@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-09-17: ePIC job throttler fix, swf-epicprod efcbef4; JEDI restarted
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 12:15 to 12:23 ET
+- swf-epicprod 9f8fbb8 to efcbef4, `pip install --no-deps --force-reinstall` (the version number, 0.3.0, did not change, so a plain install left 9f8fbb8 in place); `pip check` clean. Motivation: at 11:25 ET three 50,000-row tasks on BNL_OSG_PanDA_1 were generated in full within an hour against `NQUEUELIMIT_BNL_OSG_PanDA_1` 3123. The installed generator (master 8f155ac9) has no `excluded_sites`, so BNL_PanDA_1's room made every pass unthrottled at 300 jobs and the generator spent them on the saturated site's tasks; the share-statistics tables refresh about once a minute, so each reading was spent many times over. The engine now throttles the work queue on any saturated site when the generator cannot exclude, and keeps a grant ledger (`/var/log/panda/panda-EpicProdJobThrottler.ledger.json`, flock-shared by the generator processes) that charges each pass's cap against the reading until it changes; no uncapped pass; no lack-of-jobs parallel fill (swf-epicprod docs/EPIC_JOB_THROTTLER.md).
+- `sudo systemctl restart panda_jedi` only (the throttler runs in JEDI); no configuration change, no schema change.
+- Verified: `panda_jedi` active, `DB schema check: OK`, 27 JediMaster processes, no tracebacks; `engine up: exclusion_honored=False ledger=... ttl=180s` per VO in `panda-EpicProdJobThrottler.log`; first production decisions `SKIP throttled: saturated ['BNL_OSG_PanDA_1']` (queued 149,196). Rollback: `pip install --no-deps --force-reinstall` at 9f8fbb8 and the same restart.
+
 ## 2026-09-16: upgrade to master 8f155ac9; the ePIC job throttler registered
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 16:00 to 16:12 ET; outcome note [notes/2026-09-16-panda-server-upgrade.md](../notes/2026-09-16-panda-server-upgrade.md)
