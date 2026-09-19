@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-09-18: ePIC job throttler fix 2, swf-epicprod 86d0fa9; JEDI restarted
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 18:30 to 18:36 ET
+- swf-epicprod efcbef4 to 86d0fa9, `pip install --no-deps --force-reinstall`; `pip check` clean. Motivation: at 18:00 ET three 50,000-row tasks to NERSC_Perlmutter_epic generated in full in 30 minutes against the default limit of 2,000. The engine read each site per resource type and JEDI asks once per resource type: the SCORE pass held the site saturated from the second minute, the MCORE pass found no MCORE jobs anywhere and answered unthrottled and uncapped. A site is now one reading over every resource type, and a pass with no site at all is charged to a standing reading through the ledger, never uncapped (swf-epicprod docs/EPIC_JOB_THROTTLER.md).
+- `sudo systemctl restart panda_jedi` only; no configuration or schema change.
+- Verified: `panda_jedi` active, `DB schema check: OK`, 27 JediMaster processes, no tracebacks; the MCORE pass reads `NERSC_Perlmutter_epic: SATURATED queued 149994` and skips. Rollback: `--force-reinstall` at efcbef4 and the same restart.
+
 ## 2026-09-17: ePIC job throttler fix, swf-epicprod efcbef4; JEDI restarted
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 12:15 to 12:23 ET
