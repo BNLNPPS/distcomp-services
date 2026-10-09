@@ -2,6 +2,16 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-09:
+
+- upgraded panda server to 0.7.6, commit 725129f38633613bc9729647b1c01fcb36641bc8.
+- motivation
+  - need the patch from Anil for token auth to JLab Rucio
+  - "job generator skips tasks pinned to sites the throttler excludes" from Torre
+  - other commits in between
+- no update on package swf-epicprod, which stays at 0.3.0
+- update to panda DB schema (to 0.1.8) required.
+
 ## 2026-09-18: ePIC job throttler fix 2, swf-epicprod 86d0fa9; JEDI restarted
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 18:30 to 18:36 ET
