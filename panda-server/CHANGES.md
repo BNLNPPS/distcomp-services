@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-14:
+
+- one-file hotfix : replaced the /opt/panda/lib/python3.11/site-packages/pandaserver/dataservice/setupper_dummy_plugin.py with the current version from github repo,
+- motivation : a previous commit breaks the normal job activaition chain, causing jobs to be activated prematurally. That change was reverted in github repo. This
+  single-file hotfix avoids longer process of assessing other new commits. 
+- for future upgrade : just follow the usual upgrade steps to let pip upgrade the packages. 
+
 ## 2026-10-09:
 
 - upgraded panda server to 0.7.6, commit 725129f38633613bc9729647b1c01fcb36641bc8.
