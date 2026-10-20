@@ -2,6 +2,14 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-20: token permission for the pilots' robot identity
+
+- By: the ePIC production operators (Torre Wenaus with an AI session)
+- `DOMA_PANDAMETA.users`: one row added, as the server adds users (`users_id_seq`): id 17, name `iddssv1`, DN `/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=iddssv1/CN=663551/CN=Robot: IDDS Server1`, `gridpref` `p`. Motivation: the JLab `eicprod` certificate the payload writes with expires 2026-10-28. Its replacement has the payload ask this server for Rucio and storage tokens (`/api/v1/creds/get_access_token`, the token patch installed 2026-10-09), signing in with the pilot's proxy, harvester's robot credential, since the pilots carry no PanDA token (swf-epicprod pull requests #5 and #6, docs/EPICPROD_PAYLOAD.md item 22). The endpoint serves only an identity with `p`, and no user had it.
+- Not yet configured: the token clients. `panda_server.cfg` sets no `token_cache_config` and the default `/opt/panda/etc/panda/token_cache_config.json` does not exist, so the endpoint issues no token yet; the `rucio` and `storage` client entries and credentials come from JLab.
+- Verified: before the change the endpoint refused the robot proxy with `failed: 'iddssv1' not in authorized users with 'p' in DOMA_PANDAMETA.USERS.GRIDPREF to get access token`; after the dispatcher parameters refreshed (at most 10 minutes) it answers `'token' not found for rucio`, so the permission passes and only the client configuration is missing.
+- Rollback: `DELETE FROM doma_pandameta.users WHERE name = 'iddssv1';`
+
 ## 2026-10-14:
 
 - one-file hotfix : replaced the /opt/panda/lib/python3.11/site-packages/pandaserver/dataservice/setupper_dummy_plugin.py with the current version from github repo,
