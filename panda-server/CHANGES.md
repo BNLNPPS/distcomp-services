@@ -10,6 +10,17 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
 - Verified: before the change the endpoint refused the robot proxy with `failed: 'iddssv1' not in authorized users with 'p' in DOMA_PANDAMETA.USERS.GRIDPREF to get access token`; after the dispatcher parameters refreshed (at most 10 minutes) it answers `'token' not found for rucio`, so the permission passes and only the client configuration is missing.
 - Rollback: `DELETE FROM doma_pandameta.users WHERE name = 'iddssv1';`
 
+## 2026-10-02 to 2026-10-19: changes found on the host
+
+Recorded 2026-10-20 from file times, backup files and the journal on the host. None was logged when made; who made each change and why are not recorded and are to be added by the editor.
+
+- 2026-10-02: `panda_server-httpd.conf`, `SSLCertificateChainFile` from `/etc/grid-security/certificates/InCommon-RSA-IGTF-Server-CA-3.pem` to `/opt/panda/etc/certs/chain.pem` (backup `panda_server-httpd.conf-backup-2026-10-02`).
+- 2026-10-07: `panda_common.cfg`, `log_level` set to `DEBUG` (the editor's copy `panda_common.cfg~` holds that version).
+- 2026-10-09, with the upgrade below and not in its entry: the rollback copy `/opt/panda-backup-2026-10-09`; `argparse` 1.4.0 installed; new templates `panda_jedi.cfg.rpmnew`, `panda_server.cfg.rpmnew` and `panda_server-httpd.conf.rpmnew` written beside the live files and not reconciled; `panda_jedi.cron` rewritten.
+- 2026-10-15 09:46 ET: host rebooted.
+- 2026-10-18 21:32 ET: `panda_common.cfg`, `log_level` back to `INFO`; `panda_jedi` stopped 21:32 and started 21:36.
+- 2026-10-19 08:54 ET: the host certificate, key and chain in `/opt/panda/etc/certs/` replaced (InCommon, valid to 2027-05-06).
+
 ## 2026-10-14:
 
 - one-file hotfix : replaced the /opt/panda/lib/python3.11/site-packages/pandaserver/dataservice/setupper_dummy_plugin.py with the current version from github repo,
@@ -26,6 +37,14 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   - other commits in between
 - no update on package swf-epicprod, which stays at 0.3.0
 - update to panda DB schema (to 0.1.8) required.
+
+## 2026-10-05: ePIC job throttler, swf-epicprod 9a7aab3; wlcg MODE back to observe
+
+- By: the ePIC production operators (Torre Wenaus with an AI session). Not logged at the time; recorded 2026-10-20 from the host and the repository.
+- swf-epicprod 86d0fa9 to 9a7aab3, installed 14:53 ET (the dist-info time; `direct_url.json` names 9a7aab3). Two engine changes (swf-epicprod docs/EPIC_JOB_THROTTLER.md): 51d0831 puts the rule that held the whole work queue behind `HOLD_QUEUE_ON_SATURATED_SITE`, off, because with the wlcg mode at `throttle` it held every production pass at every site from at least 2026-09-26 while UM_GREX_PanDA_1 alone was saturated; 9a7aab3 counts a starting job as running, because jobs spend most of their life starting (median 87 of 115 min at BNL_OSG_EPIC_PROD_1, 4.9 of 5.1 at UM_GREX_PanDA_1, 2026-10-05) and counted as queued they read GREX at 0 running and always saturated.
+- `DOMA_PANDA.config`: the wlcg `MODE` row set from `throttle` back to `observe` at 13:59 UTC with swf-epicprod `scripts/jedi-throttler-mode.sh`. When it had been set to `throttle` is not recorded. The wlcg row `NQUEUELIMIT_BNL_OSG_PanDA_1` 3123, present since 2026-09-17, was not logged either.
+- Not recorded: a JEDI restart for the install and its verification; that day's logs have rotated. The code is in effect at the latest from the 2026-10-09 upgrade's restart, which kept swf-epicprod as installed.
+- Rollback: `pip install --no-deps --force-reinstall` at 86d0fa9 and `sudo systemctl restart panda_jedi`; the MODE row with the same script.
 
 ## 2026-09-18: ePIC job throttler fix 2, swf-epicprod 86d0fa9; JEDI restarted
 
