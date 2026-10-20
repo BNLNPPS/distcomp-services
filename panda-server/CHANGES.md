@@ -2,6 +2,14 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-20: queue JLAB_PanDA_1, defined by our overrides
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 16:45 ET
+- `/opt/panda/etc/panda/schedconfig/`: swf-epicprod 0c24fd1 installed (script and overrides; `COMMIT` updated). The writer now defines a queue CRIC does not have from `_clone`, a copy of a named queue's record with its own fields set (docs/SCHEDCONFIG_OVERRIDES.md). First such queue: `JLAB_PanDA_1`, cloned from UM_GREX_PanDA_1, with JLab's names, the HTCondor-CE `osg-ce-2.jlab.org:9619`, `status` `brokeroff`, `corecount` 1, `maxrss` 6000, `maxtime` 86400, storage BNL_PROD_DISK_1 as GREX. Motivation: JLab's CE accepts our pilots' token since 2026-10-20 (Kurt Strosahl, epic-prod-ops), and the queue was not to wait for a CRIC entry. JLab's glidein slots in the OSG pool run only CLAS12 (their START requires `projectName` clas12), so this is ePIC's only route to the JLab farm. `brokeroff` keeps brokerage off it: only jobs we place run there.
+- Same day on pandaharvester01 (not this host): the same writer and overrides under `/data/atlpan/harvester_common/schedconfig/` with a five-minute cron, harvester's `panda_queues.json` cache read from that file instead of CRIC (`panda_harvester.cfg`, backup `-backup-2026-10-20`), and a `JLAB_PanDA_1` pull queue with single-pilot slots (swf-epicprod docs/SCHEDCONFIG_OVERRIDES.md, On the submit host).
+- Verified: the writer wrote 103 queues (CRIC's 102 and JLAB_PanDA_1); the server's cache serves `/cache/schedconfig/JLAB_PanDA_1.all.json` (brokeroff, pull, CE osg-ce-2.jlab.org:9619, maxtime 86400) from 20:49 UTC.
+- Rollback: set the harvester queue offline, then remove the `JLAB_PanDA_1` entry from the overrides (a commit, installed here and on pandaharvester01); the server drops the record at its next refresh.
+
 ## 2026-10-20: ePIC job throttler to throttle for production
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 13:35 ET
