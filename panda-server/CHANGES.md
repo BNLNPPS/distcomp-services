@@ -2,6 +2,14 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-20: token clients for JLab Rucio and storage
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 11:58 ET
+- `/opt/panda/etc/panda/token_cache_config.json` created (owner `atlpan`, mode 600; the default path of `token_cache_config`, so `panda_server.cfg` is unchanged), with the two CILogon clients registered at JLab for the payload's token writes: `rucio` (audience `rucio-server.jlab.org`, scope `rucio`, prefetched by the token-cache daemon every 10 minutes) and `storage` (audience and path-scoped scope from each request). The client entries are as the JLab Rucio service sent them, plus `allowed_scope_verbs` `storage.read`, `storage.create`, `storage.modify` on `storage`: the stash copy overwrites (`storage.modify`), which the default verbs refuse. Motivation: the entry below; the patched server had no clients configured, so it issued no token.
+- `panda_httpd` reloaded gracefully (SIGUSR1 to the main process) so the token endpoint reads the file; the server answered normally throughout.
+- Verified: as `iddssv1` with the robot proxy, a `storage` request for audience `epicxrd1.sdcc.bnl.gov` and scope `storage.create:/eic/EPIC/TEST/canary/tokencheck` returned a token issued by `https://cilogon.org/jlab` with exactly that audience and scope.
+- Rollback: remove the file and reload `panda_httpd` the same way.
+
 ## 2026-10-20: token permission for the pilots' robot identity
 
 - By: the ePIC production operators (Torre Wenaus with an AI session)
