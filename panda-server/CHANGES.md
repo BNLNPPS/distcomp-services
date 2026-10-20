@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-20: ePIC job throttler to throttle for production
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 13:35 ET
+- `DOMA_PANDA.config`: the wlcg `MODE` row set from `observe` to `throttle` at 17:35:59 UTC with swf-epicprod `scripts/jedi-throttler-mode.sh`; the engine is unchanged (swf-epicprod 9a7aab3, installed 2026-10-05). Motivation: in `observe` the engine read BNL_OSG_PanDA_1 as saturated (14,630 queued against max(2 × 271 running, `NQUEUELIMIT` 3,123)) and still passed every pass unthrottled, so a placed task had all its jobs generated at once: task 40857 had 47,845 jobs generated for BNL_OSG_EPIC_PROD_1, and its move to UM_GREX_PanDA_1 the same day left 43,026 queued jobs to kill, one at a time (each kill locks the task's JEDI dataset row). Both reasons the mode went back to `observe` on 2026-10-05 were fixed in that day's engine (the work-queue hold rule off; a starting job counted as running).
+- Verified: the last `OBSERVE would` line for wlcg was at 17:36:54 UTC, as the JEDI processes reread the row. Since then production passes go unthrottled at 300 jobs with the saturated BNL_OSG_PanDA_1 and UM_GREX_PanDA_1 excluded, and BNL_OSG_EPIC_PROD_1 open with room 2,000 (`panda-EpicProdJobThrottler.log`).
+- Rollback: the same script with `wlcg observe`.
+
 ## 2026-10-20: queue records from CRIC with tracked overrides
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 12:11 to 12:12 ET
