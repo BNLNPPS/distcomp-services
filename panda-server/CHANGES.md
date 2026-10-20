@@ -2,6 +2,15 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-20: queue records from CRIC with tracked overrides
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 12:11 to 12:12 ET
+- The server's queue records now come from a file we write instead of from CRIC directly: CRIC's records with the overrides tracked in swf-epicprod (`pandaserver/schedconfig-overrides.json`, written by `scripts/panda-schedconfig.py`, docs/SCHEDCONFIG_OVERRIDES.md). Installed from swf-epicprod 15461fc into `/opt/panda/etc/panda/schedconfig/` (owner `atlpan`; `COMMIT` names the commit); `/etc/cron.d/panda-schedconfig` rewrites the file as `atlpan` every five minutes, log `/var/log/panda/panda-schedconfig-overrides.log`. When CRIC cannot be read the file is left as it is, so the server keeps its last records.
+- `panda_server.cfg`: `CRIC_URL_SCHEDCONFIG` set to `/opt/panda/etc/panda/schedconfig/schedconfig.json`, the CRIC URL kept beside it as a comment (backup `panda_server.cfg-backup-2026-10-20`); `panda_daemon` restarted so the configurator daemons read it.
+- First override: UM_GREX_PanDA_1 `workflow` `pull`. Motivation: GREX runs pull pilots since 2026-10-19, but recorded as push it fell under the dispatcher's meanRSS guard (`meanrss` 4000): with its running eAu jobs averaging about 5.7 GB, the server answered every GREX pilot "No jobs in PanDA" and held 10,125 activated eAu retries at 5,400 MB (`getJobs ... meanRSS will be throttled to jobs under 4000MB` in `panda-DBProxy.log`); GREX's running jobs fell from about 940 to 375.
+- Verified: the first run wrote 102 queues with UM_GREX_PanDA_1 `push` to `pull`; the `schedconfig_json` daemon loaded it at 16:12:37 UTC; the dispatcher's last meanRSS hold for GREX was at 16:12:36 UTC (20,217 that day) and none since; GREX's running eAu jobs rose and its activated ones fell from the first half minute.
+- Rollback: restore `panda_server.cfg-backup-2026-10-20` and restart `panda_daemon`; remove `/etc/cron.d/panda-schedconfig`.
+
 ## 2026-10-20: token clients for JLab Rucio and storage
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 11:58 ET
