@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-21: OSG pilots take jobs for 120 minutes (timefloor; swf-epicprod bc88329)
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 16:22 ET
+- Overrides from swf-epicprod bc88329 on both hosts (`COMMIT` updated): `timefloor` 120 for BNL_OSG_PanDA_1 and BNL_OSG_EPIC_PROD_1 (was 0). Motivation: with 0 every pilot ran one job and left (994 jobs on 994 pilots in two hours at BNL_OSG_EPIC_PROD_1), so a queue ran only while a batch of its pilots stood at the front of the shared pool's line, and BNL_OSG_EPIC_PROD_1 fell to 0 running with 8,998 jobs queued. The pilot wrapper reads the field from this server's cache.
+- Verified: `/cache/schedconfig/<queue>.all.json` serves `timefloor` 120 and `workflow` pull for both queues at 16:25 ET.
+- Rollback: the overrides at b631c7c and the next writer run.
+
 ## 2026-10-21: BNL_OSG_PanDA_1 and BNL_OSG_EPIC_PROD_1 recorded as pull (swf-epicprod b631c7c)
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 16:19 ET
