@@ -2,6 +2,15 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-21: JEDI generation lock for the ePIC VOs; job throttler excludes full sites (swf-epicprod e708437); JEDI restarted
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 14:15 to 14:21 ET
+- `panda_jedi.cfg` `[jobgen]`: `lockProcess = wlcg|epic:any:any:any` (none before; backup `panda_jedi.cfg-backup-2026-10-21`). Motivation: the job generator skips a throttled work queue only when it holds the process lock, and takes the lock only for the VOs this key names, so with the key absent the ePIC job throttler's "throttled" answer was ignored and the pass ran uncapped, kept only off the sites it named. At 12:12 ET UM_GREX_PanDA_1 read room 0 (queued 2,814 of 2,814), was not named, and the generator made 4,999 jobs for each of tasks 40856 and 40857 against a bound of about 2,800; BNL_OSG_EPIC_PROD_1's two new tasks were generated whole (9,998 jobs) the same way.
+- swf-epicprod 9a7aab3 to e708437, `pip install --no-deps --force-reinstall`; `pip check` clean: a site with no room is named with the saturated sites (swf-epicprod docs/EPIC_JOB_THROTTLER.md).
+- `sudo systemctl restart panda_jedi` at 14:19 ET.
+- Verified: `panda_jedi` active; `engine up: exclusion_honored=True` per VO; first production decisions `SKIP throttled: excluded ['BNL_OSG_EPIC_PROD_1', 'BNL_OSG_PanDA_1', 'UM_GREX_PanDA_1']`; generator locks held by the `-gen` processes in `JEDI_Process_Lock` for wlcg and epic (nine sampled in a minute).
+- Rollback: restore `panda_jedi.cfg-backup-2026-10-21`, `pip install --no-deps --force-reinstall` at 9a7aab3, and the same restart.
+
 ## 2026-10-20: queue JLAB_PanDA_1, defined by our overrides
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 16:45 ET
