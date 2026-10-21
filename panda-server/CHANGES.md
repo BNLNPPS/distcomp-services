@@ -2,6 +2,16 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-21: one throttler reading for the OSG pool; the epic VO throttles; 500 dead GREX jobs cancelled (swf-epicprod cc7d80e); JEDI restarted
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 15:20 to 15:30 ET
+- swf-epicprod e708437 to cc7d80e, `pip install --no-deps --force-reinstall`; `pip check` clean. Motivation: BNL_OSG_PanDA_1 and BNL_OSG_EPIC_PROD_1 feed one OSG pool but were read per queue, each with its own floor (3,123 and the default 2,000) and its own share of the running count, so the pool's allowance was the sum: 20,030 queued against 1,121 running that afternoon. A `POOLS` row now names the queues of a pool; the pool is one reading over their summed counts, held to the pool's limits, its queues excluded or granted together (swf-epicprod docs/EPIC_JOB_THROTTLER.md).
+- `DOMA_PANDA.config`, with swf-epicprod `scripts/jedi-throttler-config.sh`: rows `POOLS` = `osg:BNL_OSG_PanDA_1,BNL_OSG_EPIC_PROD_1` and `NQUEUELIMIT_osg` = 3123 for both VOs (new). With `scripts/jedi-throttler-mode.sh`: the epic `MODE` row from `observe` to `throttle`, left at observe when wlcg was switched on 2026-10-20; epic tasks all run in the `test` work queue, read on its own, so production saturation does not hold canaries.
+- 500 jobs of task 40855 at UM_GREX_PanDA_1 cancelled with `Client.killJobs` (all accepted): attempt 3, fetched in push mode on 2026-10-19 just before GREX went to pull, held by no pilot or batch job since 22:05 UTC that day. The throttler counts `starting` as running, so they raised GREX's bound by about 1,000.
+- `sudo systemctl restart panda_jedi` at 15:27 ET.
+- Verified: `engine up` at 19:28:04 UTC; first decisions `osg (BNL_OSG_EPIC_PROD_1+BNL_OSG_PanDA_1): SATURATED queued 19538+0 granted > max(2.0 x running 1074, NQUEUELIMIT 3123)` and `UM_GREX_PanDA_1: SATURATED queued 10285 ... running=847`; epic passes decided (`epic:any ... queue=test ... unthrottled: max_num_jobs=300`); 40855's 500 jobs `cancelled`.
+- Rollback: `pip install --no-deps --force-reinstall` at e708437 and the same restart; the epic MODE row back to `observe`; the new rows are ignored by the earlier engine.
+
 ## 2026-10-21: JEDI generation lock for the ePIC VOs; job throttler excludes full sites (swf-epicprod e708437); JEDI restarted
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 14:15 to 14:21 ET
