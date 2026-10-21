@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-21: BNL_OSG_PanDA_1 and BNL_OSG_EPIC_PROD_1 recorded as pull (swf-epicprod b631c7c)
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 16:19 ET
+- `/opt/panda/etc/panda/schedconfig/` and pandaharvester01 `/data/atlpan/harvester_common/schedconfig/`: overrides from swf-epicprod b631c7c (`COMMIT` updated; backups `schedconfig-overrides.json-backup-2026-10-21`), adding `workflow` `pull` for both OSG queues. Motivation: harvester on osgsub01 runs their pilots in pull mode since 2026-10-19, while the records said push, which put them under the server's meanRSS guard for push queues.
+- Verified: the writer, run once on each host, wrote 103 queues with both OSG queues `push` to `pull`; `schedconfig_json` reads `pull` for both.
+- Rollback: the overrides at 0c24fd1 and the next writer run.
+
 ## 2026-10-21: one throttler reading for the OSG pool; the epic VO throttles; 500 dead GREX jobs cancelled (swf-epicprod cc7d80e); JEDI restarted
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 15:20 to 15:30 ET
