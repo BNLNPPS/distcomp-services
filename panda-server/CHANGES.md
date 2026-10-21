@@ -2,6 +2,14 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-21: BNL_OSG_PanDA_1 recorded as 1 core, 4096 MB (swf-epicprod 09da46a)
+
+- By: the ePIC production operators (Torre Wenaus with an AI session), 17:35 ET
+- Overrides from swf-epicprod 09da46a on both hosts (`COMMIT` updated; backups `schedconfig-overrides.json-backup-2026-10-21b`): `corecount` 1 and `maxrss` 4096 for BNL_OSG_PanDA_1 (CRIC: 8 and 48000). Motivation: the pilots are single-core and ask the pool for 3,700 MB, while the front's fit check and PCS readiness read this record, so the 5,400 MB eAu tasks 40856 and 40857 passed as fitting OSG and lost 55,824 jobs to memory kills on the two OSG queues in three days. 4096 is the default task declaration, which runs there. JEDI's GenJobBroker skips its memory check for a task whose site is set, so placed tasks are unaffected. BNL_OSG_EPIC_PROD_1 is unchanged.
+- pandaharvester01: `schedconfig.log` had been owned by root since the 2026-10-20 install, so the writer's five-minute cron, which runs as atlpan, failed at every run, and the file was rewritten only by hand. Owner set to atlpan.
+- Verified: both writers report `BNL_OSG_PanDA_1 corecount: 8 -> 1; maxrss: 48000 -> 4096`; the server's cache serves `corecount` 1 and `maxrss` 4096 for BNL_OSG_PanDA_1 from 17:40 ET, and BNL_OSG_EPIC_PROD_1's record unchanged.
+- Rollback: the overrides at bc88329 (the backups) and the next writer run.
+
 ## 2026-10-21: OSG pilots take jobs for 120 minutes (timefloor; swf-epicprod bc88329)
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 16:22 ET
