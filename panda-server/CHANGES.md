@@ -2,6 +2,16 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+
+## 2026-10-22: verified JEDI regulation and synchronized queue resources
+
+- By: Codex swf-3, implementing Torre's accepted regulation audit with explicit authorization to complete deployment while he was AFK.
+- Installed swf-epicprod code `ffd9fdf` from a locally built wheel, `pip install --no-deps --force-reinstall`; `pip check` passed. JEDI restarted and active at 04:56:27 UTC. Backup: `/opt/panda/swf_epicprod.before-regulation-20261022`.
+- The throttler now reserves grants atomically under a process-shared lock, with VO/work-queue scopes. Missing/invalid mode, corrupt ledger, or missing generation-lock/site-exclusion support holds generation. Both VOs emit fresh `REGULATION_OK`; the server reporter 1.1 carries it to the front. Both MODE rows remain `throttle`.
+- `/opt/panda/etc/panda/schedconfig/panda-schedconfig.py` and its five-minute cron now resolve GitHub main and fetch the override file at that immutable commit. Both harvesters do the same. The sidecar `schedconfig.json.provenance.json` records revision and hashes. All three manual installs and the 05:00 UTC cron runs produced identical input and output hashes from `6671257`. Source failures retain last-good records.
+- GREX records one core, 6000 MB, 18000 seconds and timefloor 180 per pilot, distinct from its fixed eight-core/48000 MB allocation. Both OSG queues record one core and 4096 MB; osgsub01's new pilots now request 4096 MB too. OSG timefloor remains 120. The configurator's live records verified these resource limits.
+- Rollback: stop JEDI, restore its `swf_epicprod/jedi` directory from the backup, restart JEDI. Restore static overrides through a repository revert; merely editing a synchronized local file is undone by the next cron run. Dated writer/cron/config backups are beside their originals. The complete scope, evidence, tradeoffs and Harvester rollback are in [the implementation report](https://github.com/BNLNPPS/swf-epicprod/blob/main/docs/REGULATION_AUDIT_2026-10-22.md).
+
 ## 2026-10-21: BNL_OSG_PanDA_1 recorded as 1 core, 4096 MB (swf-epicprod 09da46a)
 
 - By: the ePIC production operators (Torre Wenaus with an AI session), 17:35 ET
