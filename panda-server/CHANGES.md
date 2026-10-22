@@ -2,6 +2,13 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-22: isolate retired PROD_1 stock from active OSG generation
+
+- By: Codex swf-3, restoring OSG supply and moving the remaining PROD_1 tasks on Torre's instruction.
+- At 22:16 UTC, changed the `wlcg` JEDI `epic_job_throttler` `POOLS` row from `osg:BNL_OSG_PanDA_1,BNL_OSG_EPIC_PROD_1` to `osg:BNL_OSG_PanDA_1;osg_drain:BNL_OSG_EPIC_PROD_1`, using swf-epicprod `scripts/jedi-throttler-config.sh`. Modes and limits were unchanged. The retired queue's large stock had excluded both queues from generation while the active queue had only about 240 activated jobs.
+- The 22:18:11 UTC JEDI decision gave active OSG room for 2,930 jobs and excluded the drain independently. Active OSG reached 3,192 activated jobs at 22:26 UTC. Harvester reached its configured 600 waiting pilots at 22:20:36 and submitted replacements on the next cycle. No service restart was required.
+- Prior value is recorded above; restore it only through the same configuration script after checking that a retired backlog cannot starve the active queue again. The `epic` test-VO row was not changed.
+
 
 ## 2026-10-22: verified JEDI regulation and synchronized queue resources
 
