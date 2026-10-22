@@ -2,6 +2,15 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-22: ePIC adder skips absent and failed files
+
+- By: Codex swf-3, on Torre's instruction to use an ePIC-owned plugin.
+- Installed swf-epicprod `0ae45ae` from its wheel with `--no-deps --no-index --force-reinstall`. The separate `swf_epicprod.panda.EpicAdderPlugin` subclasses the upstream simple adder and excludes `nooutput` and `failed` files during registration, restoring the original file list afterward. PanDA core source was unchanged; the installed simple-adder checksum was verified unchanged. The installed ePIC JEDI sources were also unchanged and `pip check` passed.
+- `configure_epic_adder.py` changed only `adder_plugins` in `/opt/panda/etc/panda/panda_server.cfg` to `wlcg:swf_epicprod.panda.EpicAdderPlugin:EpicAdderPlugin,epic:swf_epicprod.panda.EpicAdderPlugin:EpicAdderPlugin`. Backup: `panda_server.cfg.before-epic-adder-20261022T223415Z`; prior ePIC package: `/opt/panda/swf_epicprod.before-adder-0ae45ae`.
+- Before restart, `gate/adder_nooutput.py` passed with actual PanDA JobSpec/FileSpec objects and mocked Rucio calls, and `gate/epic_adder_config.py` confirmed both configured VOs through the actual adder entry point. Four local boundary tests covered file restoration and preservation of upstream errors.
+- Restarted only `panda_daemon`, active at 22:34:42 UTC. Fresh job 5805903 of task 41039 finished with `logHeld=s3` and DDM error 0 at 22:34:57. By 22:38 UTC, 109 jobs from 41039/41040 had finished since restart, with no new DDM collision. One separate failure had DDM error 0. Historical failed jobs and catalog records were not rewritten.
+- To reverse plugin selection, restore the saved configuration and restart only `panda_daemon`. This restores the old registration behavior, including its absent-file defect. PanDA maintainers have the generic correction separately as [PR 836](https://github.com/PanDAWMS/panda-server/pull/836).
+
 ## 2026-10-22: isolate retired PROD_1 stock from active OSG generation
 
 - By: Codex swf-3, restoring OSG supply and moving the remaining PROD_1 tasks on Torre's instruction.
