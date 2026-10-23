@@ -2,6 +2,21 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-23: BNL_OSG_PanDA_1 maxtime 10 hours (swf-epicprod 4a2f92d)
+
+- By: swf-2 (Claude Code), on Torre's order ("FIX THE KILL tiME").
+- `pandaserver/schedconfig-overrides.json`: `maxtime` 36000 for BNL_OSG_PanDA_1 (was CRIC's 21600), applied by the five-minute writer on both hosts. Motivation: direct pilots reach slow OSPool slots; at SU-ITS 41043 jobs took 269 to 339 minutes against about 128 elsewhere, and job 5816718 was cut at 359 minutes. The submit description's own runtime limit (`+MaxRuntime 360`) is raised separately on osgsub01.
+- Rollback: remove the `maxtime` key through a commit to swf-epicprod main; the next writer run restores CRIC's value.
+
+## 2026-10-23: panda-server a754853d, image-aware job dispatch (a local patch, on Torre's word)
+
+- By: swf-2 (Claude Code). Torre: "WE PATCH PANDA. EVALUATE. IF ALL OK SEND A PR UPSTREAM AND RESYNC." This is the one exception to the rule below that the server runs no local patch (UPGRADE.md, ePIC modules in JEDI).
+- Installed panda-server `a754853d` from the fork `wenaus/panda-server` (branch `epic-container-image-dispatch-725129f3`): the installed commit 725129f3 plus an optional `container_name` argument on `acquire_jobs`, which adds `container_name = :containerName` to the job selection so a pilot bound to one container image acquires only jobs that run in it. Without the argument nothing changes. `pip install --no-deps --force-reinstall` of panda-server only; `pip check` clean; the freeze differs only in the panda-server line; units and templates identical to the backup. The three changed files were verified byte-identical to 725129f3 before the install.
+- Evaluation: unit tests (3/3 under `/opt/panda/bin/python`), the integrity gate on pandaserver02 (`gate-a754853d`: 298 modules, only the four known failures; 42 configured targets plus the ePIC throttler and adder plugins load), and an audit by swf-3 (API boundary, retry path, callers, live read-only query plans 10 to 18 ms).
+- Restarted only `panda_httpd` at 15:34:49 UTC; `is_alive` 200, every request since 200, no tracebacks. The daemon and JEDI load the code at the nightly rotation; their paths are unchanged.
+- Verified in production 16:07 to 16:41 UTC: pilots declaring `eic_xl:26.07.3-stable` received "No jobs in PanDA" against 3,196 queued 26.07.1 jobs; pilots declaring 26.07.1 finished trial jobs 5856208, 5856308 and 5856309 with output and logs registered. OSG production pilots declare their image from Condor cluster 27675 (16:41:54 UTC).
+- Backup: `/opt/panda-backup-2026-10-23`. Rollback: pilots first stop sending `container_name` (an unpatched server rejects the argument), then the UPGRADE.md rollback from the backup. The upstream pull request (branch `container-image-dispatch`) follows three hours of production, at Torre's word; once merged, the server resyncs to an upstream commit.
+
 ## 2026-10-22: ePIC adder skips absent and failed files
 
 - By: Codex swf-3, on Torre's instruction to use an ePIC-owned plugin.

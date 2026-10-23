@@ -194,7 +194,7 @@ JEDI plugins owned by ePIC production are registered in `panda_jedi.cfg` `modCon
 
 Production tasks carry VO `wlcg`: the server was commissioned with the generic JEDI plugins under that key, and the production team's recipe and PCS's Standard Production configuration both submit `vo wlcg`, `prodSourceLabel managed`. The `epic` VO carries the test paths (canary probes, GPU tests, client-API test submissions). JEDI's throttler statistics are per VO, so a module registered for one VO sees only that VO's jobs at a site.
 
-Changes to panda-server itself go to the maintainers as pull requests. The server runs the maintainers' releases or master commits, never a local patch.
+Changes to panda-server itself go to the maintainers as pull requests. The server runs the maintainers' releases or master commits, never a local patch. One exception stands, on Torre's word of 2026-10-23: the image-aware dispatch patch (`container_name` on `acquire_jobs`, CHANGES.md), installed from the fork until its pull request is merged upstream.
 
 ## Pending upgrade
 
