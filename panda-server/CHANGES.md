@@ -2,6 +2,11 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-24: BNL_OSG_PanDA_1 maxtime 16 hours (swf-epicprod 9fa361f)
+
+- `pandaserver/schedconfig-overrides.json`: `maxtime` 57600 for BNL_OSG_PanDA_1 (was 36000), on Torre's go, applied by the five-minute writer on both hosts. Motivation: FSU's slots run some 41052 rows past ten hours (five jobs killed at 591 minutes by the ten-hour limit, 2026-10-24 08:20Z) and FSU's glideins have 29 to 47 hours left. maxtime is the pilot's job limit for the whole queue; the per-site batch limit (the native launcher, swf-3) holds every other site at ten hours.
+- Rollback: set `maxtime` back to 36000 through a commit to swf-epicprod main.
+
 ## 2026-10-23: BNL_OSG_PanDA_1 maxtime 10 hours (swf-epicprod 4a2f92d)
 
 - By: swf-2 (Claude Code), on Torre's order ("FIX THE KILL tiME").
