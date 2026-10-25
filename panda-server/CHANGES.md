@@ -2,6 +2,32 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-25: refuse dispatch to terminal worker parents
+
+- By: Codex swf-2, on Torre's direct "INSTALL IT", after swf-3's independent
+  review and 13 focused captured-source regression checks. Source preparation:
+  swf-epicprod e7d5eb9. This is an operator-authorized local patch, separate from
+  the installed image filter and from any VO migration.
+- Changed only job_complex_module.py in the installed DB proxy modules. getJobs
+  locks an existing worker parent before candidate mutation and refuses a
+  finished, failed, cancelled or missed parent. Existing job completion and output
+  registration paths are unchanged; terminal worker records were not revived.
+- Input SHA-256 8712b38e8bc1e85ff99014f973f48b548959b3f1f811e517eab89a1d337c5bf7;
+  installed SHA-256 3624cfeb008599ca2ade456e18dea76fad79ad87aa10da9f728cb68fde0be966.
+  Backup beside the module: job_complex_module.py.before-worker-safety-20261025T172111Z.
+  Full installation audit: /opt/panda/worker-safety-20261025T172111Z/installation.json.
+- Restarted only panda_httpd, active at 17:21:32 UTC. API is_alive returned 200.
+  A 17:23:24 UTC central query found 55 newly started OSG jobs since activation
+  (52 running, two starting, one sent), all attached to running worker parents.
+  No natural terminal-parent refusal appeared in the initial sampled log tail;
+  the refusal path is covered by the focused regressions, not claimed witnessed
+  in production. Harvester's matching uncertainty safeguards were activated
+  separately on osgsub01 at 17:20:54 UTC.
+- Rollback: restore the exact dated module copy, retaining ownership and mode,
+  then restart only panda_httpd. Package versions, schema, configuration,
+  JEDI and daemon services were unchanged. An upstream upgrade must preserve or
+  replace this patch until upstream integration is resolved.
+
 ## 2026-10-24: BNL_OSG_PanDA_1 maxtime 16 hours (swf-epicprod 9fa361f)
 
 - `pandaserver/schedconfig-overrides.json`: `maxtime` 57600 for BNL_OSG_PanDA_1 (was 36000), on Torre's go, applied by the five-minute writer on both hosts. Motivation: FSU's slots run some 41052 rows past ten hours (five jobs killed at 591 minutes by the ten-hour limit, 2026-10-24 08:20Z) and FSU's glideins have 29 to 47 hours left. maxtime is the pilot's job limit for the whole queue; the per-site batch limit (the native launcher, swf-3) holds every other site at ten hours.
