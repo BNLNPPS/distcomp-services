@@ -2,6 +2,25 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-26: BNL_ePIC_GOOGLE_es maxtime 999999999 in the server's queue record
+
+- By: Claude swf-2, within Torre's direction of the Google Event Service work.
+  swf-epicprod 950f475 (`pandaserver/schedconfig-overrides.json`,
+  docs/SCHEDCONFIG_OVERRIDES.md); no file on this host was edited by hand.
+- Why: JEDI's scouting divides a job's wall time by its input size; a
+  particle-gun ES task's input is a few-kB generation plan, so the task
+  walltime reaches JEDI's cap, 999999999 kSI2kseconds (task_utils_module.py).
+  GenJobBroker skips any queue whose maxtime is lower, so a file left by a
+  partial job never got its next consumer: task 41223's 10,576 events stood
+  "no candidates" at maxtime 345600. The queue's pods have no wall clock; the
+  harness deadline bounds each job, and the pilot's limit comes from its own
+  queue file.
+- Verified: the 5-minute sync wrote revision 1c498cf
+  (`schedconfig.json.provenance.json`), and the server's `schedconfig_json` row
+  for BNL_ePIC_GOOGLE_es read maxtime 999999999 at 11:10 UTC.
+- Rollback: remove the BNL_ePIC_GOOGLE_es entry from the overrides file on
+  swf-epicprod main; the next sync restores CRIC's 345600.
+
 ## 2026-10-25: refuse dispatch to terminal worker parents
 
 - By: Codex swf-2, on Torre's direct "INSTALL IT", after swf-3's independent
