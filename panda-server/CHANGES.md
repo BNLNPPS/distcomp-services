@@ -2,6 +2,23 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-27: duplicate Harvester_Workers rows removed
+
+- By: Claude swf-1, on Torre's word ("that must be fixed").
+- Why: the Perlmutter harvester reported "failed to update workers with database
+  error in the PanDA server" every 30 minutes. `updateWorkers` sets `lastUpdate`
+  on every row of a worker, the date-partitioned table moves them into the day's
+  partition, and two rows of one worker collide on its key: UniqueViolation on
+  `harvester_workers_p20261027_pkey`, and the whole batch rolls back. Workers
+  18104 (2 rows) and 18253 (4 rows) of `Perlmutter_test_1`, from 2026-08-20 and
+  21, and worker 0 of `BNL_harvester_1` (4 rows, 2026-10-19) had copies written
+  within milliseconds of each other.
+- Changed: [dedupe_harvester_workers.py](dedupe_harvester_workers.py) deleted the
+  7 extra rows, keeping each worker's newest, in one transaction through the
+  parent table (the database account may not delete from a partition directly).
+  No duplicated worker remains.
+- Rollback: none needed; the deleted rows were copies of the rows kept.
+
 ## 2026-10-27: fine-grained Event Service ranges of several events (a local patch, on Torre's word)
 
 - By: Claude swf-1, on Torre's word to patch the server ahead of an upstream
