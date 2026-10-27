@@ -2,6 +2,45 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-27: fine-grained Event Service ranges of several events (a local patch, on Torre's word)
+
+- By: Claude swf-1, on Torre's word to patch the server ahead of an upstream
+  release. PanDA operations at BNL were notified before the install.
+- Why: JEDI gives a fine-grained task single-event ranges (`JobGenerator.py`),
+  and inserting a job writes one `JEDI_Events` row per unprocessed event in one
+  transaction, inside JEDI's fixed 600 s limit on `storeJobs`. A 6M-event first
+  job took 563 to 596 s; the retry of task 41316 (5,750,520 ranges) timed out,
+  was rolled back and was repeated every ten minutes from 2026-10-26 19:27 UTC.
+- Changed: a task parameter, `nEventsPerFineGrainedRange` (split rule `FR`),
+  sets a fine-grained task's events per range; a task without it is unchanged.
+  Five files: `task_split_rules.py`, `JediTaskSpec.py`, `TaskRefinerBase.py`,
+  `JobGenerator.py`, `task_event_module.py` (the job's event count multiplies
+  finished ranges by the range size). Prepared from the installed files and
+  installed file by file with [patches/fine-grained-range-size](patches/fine-grained-range-size/);
+  the change lines are identical to branch `fine-grained-range-size` off
+  PanDAWMS/panda-server master.
+- Before the install the installed tree was compared with its commit `a754853d`
+  ([audit/](audit/)): 420 files, two differing, both listed in UPGRADE.md (Local
+  changes on the host) and untouched; the five files read their `a754853d`
+  content.
+- Checks of the branch: pre-commit 4.6.2 over the tree (ruff, ruff-format,
+  mypy, the slots import) passed; 283 unit tests on the branch and on master,
+  the same 63 failures on both (62 `api/v1` tests that call the live CERN
+  server, one `key_reads_tests` case).
+- Installed 14:26 UTC. Record `/opt/panda/fine-grained-range-20261027T1430Z/install.json`
+  (SHA-256 before and after); backups beside each file, suffix
+  `.before-fine-grained-range-20261027T1430Z`.
+- Restarted `panda_jedi` and `panda_httpd` at 14:26:42 UTC: five services
+  active, JEDI's `DB schema check: OK`, `is_alive` 200, no traceback in the JEDI
+  or daemon stderr logs or the server error log, the job generator cycling.
+- Not yet verified: a task carrying `nEventsPerFineGrainedRange`.
+- The fork build branch `epic-container-image-dispatch-725129f3` now carries
+  upstream master's `setupper_dummy_plugin.py` (b62aa5b5), the installed
+  version, so an install from it no longer reverts that file.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261027T1430Z --rollback`
+  (each file must read its installed checksum; the backups are restored), then
+  restart `panda_jedi` and `panda_httpd`.
+
 ## 2026-10-26: BNL_ePIC_GOOGLE_es maxtime 999999999 in the server's queue record
 
 - By: Claude swf-2, within Torre's direction of the Google Event Service work.

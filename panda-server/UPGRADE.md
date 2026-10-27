@@ -29,7 +29,7 @@ The maintainers' guides: [PanDA server](https://panda-wms.readthedocs.io/en/late
 
 ### 1. Assessment
 
-Record the installed commit and choose the target. Read the delta for the four things that decide the shape of the upgrade, and write the Pending upgrade section from the reading; circulate it.
+Record the installed commit and choose the target. Compare the installed tree with its commit (Local changes on the host) and plan, for each listed change, whether the target contains it, its patch is re-applied after step 5, or it is dropped. Read the delta for the four things that decide the shape of the upgrade, and write the Pending upgrade section from the reading; circulate it.
 
 ```
 # on the host
@@ -194,7 +194,29 @@ JEDI plugins owned by ePIC production are registered in `panda_jedi.cfg` `modCon
 
 Production tasks carry VO `wlcg`: the server was commissioned with the generic JEDI plugins under that key, and the production team's recipe and PCS's Standard Production configuration both submit `vo wlcg`, `prodSourceLabel managed`. The `epic` VO carries the test paths (canary probes, GPU tests, client-API test submissions). JEDI's throttler statistics are per VO, so a module registered for one VO sees only that VO's jobs at a site.
 
-Changes to panda-server itself go to the maintainers as pull requests. The server runs the maintainers' releases or master commits, never a local patch. One exception stands, on Torre's word of 2026-10-23: the image-aware dispatch patch (`container_name` on `acquire_jobs`, CHANGES.md), installed from the fork until its pull request is merged upstream.
+## Local changes on the host
+
+Changes to panda-server itself go to the maintainers as pull requests. A change needed before a release is installed on Torre's word as a local patch, file by file (`patches/`), never by reinstalling the package over the host's other changes, and PanDA operations at BNL are notified before it. Every installed file that differs from the installed commit is listed here. A package install (step 5) replaces every one of them; each is carried forward, by re-applying its patch or by a target that contains it, or dropped on purpose, and the choice is logged in CHANGES.md.
+
+| Installed | Git blob | Change | Since |
+|---|---|---|---|
+| the package, commit `a754853d` of `wenaus/panda-server` | | image-aware dispatch, `container_name` on `acquire_jobs`; pull request branch `container-image-dispatch` | 2026-10-23 |
+| `pandaserver/dataservice/setupper_dummy_plugin.py` | `2ce099fc` | upstream master's version, newer than the installed commit, restored by PanDA operations at BNL | 2026-10-23 |
+| `pandaserver/taskbuffer/db_proxy_mods/job_complex_module.py` | `36025657` | new dispatch to a terminal worker parent refused | 2026-10-25 |
+| `pandaserver/taskbuffer/task_split_rules.py` | `be92bff9` | fine-grained ranges of several events ([patches/fine-grained-range-size](patches/fine-grained-range-size/)) | 2026-10-27 |
+| `pandaserver/taskbuffer/JediTaskSpec.py` | `12af3251` | the same | 2026-10-27 |
+| `pandajedi/jedirefine/TaskRefinerBase.py` | `9d969ee7` | the same | 2026-10-27 |
+| `pandajedi/jediorder/JobGenerator.py` | `b93afff5` | the same | 2026-10-27 |
+| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `db1563ee` | the same | 2026-10-27 |
+
+The installed tree is compared with its commit before any install, package or file, and the comparison must name exactly the files of this table:
+
+```
+ssh ... "ssh pandaserver01 'sudo -n /opt/panda/bin/python -I -'" < audit/installed_blobs.py > /tmp/installed.json
+python3 audit/compare.py /tmp/installed.json <panda-server checkout>
+```
+
+Expected: one `DIFFERS` line per file above, with its blob; `EXTRA` lines are dated backups and editor copies. A difference not in the table is someone's change on the host: stop, find its author, and list it before going on.
 
 ## Pending upgrade
 
