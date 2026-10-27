@@ -6,6 +6,7 @@ Procedures and change records for the distributed computing services hosted at B
 |---|---|---|
 | PanDA server and JEDI | `pandaserver01.sdcc.bnl.gov` | [panda-server/UPGRADE.md](panda-server/UPGRADE.md), [panda-server/CHANGES.md](panda-server/CHANGES.md) |
 | harvester | `pandaharvester01.sdcc.bnl.gov` | |
+| Perlmutter harvester | NERSC Perlmutter login node | [perlmutter-harvester/README.md](perlmutter-harvester/README.md), [perlmutter-harvester/CHANGES.md](perlmutter-harvester/CHANGES.md) |
 
 ## Conventions
 
