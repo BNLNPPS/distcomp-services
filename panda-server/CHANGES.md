@@ -2,6 +2,25 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-27: the job event count adds each call's finished ranges (a local patch, on Torre's word)
+
+- By: Claude swf-1, installed 16:46:13 UTC, `panda_httpd` restarted, active,
+  `is_alive` 200. Torre preferred this form: range updates are the most
+  scaling-sensitive path in PanDA, and this one adds no query to it.
+- Why: the rollback below brought back the `:PandaID` KeyError it was meant to
+  fix; a rollback is not a repair. The recount of the job's finished ranges
+  that the bind fix enabled walks every range of a fine-grained job on every
+  call. Restricting it to the call's own ranges was measured on a live job of
+  426,496 ranges and still took 325 ms for 1,000 keys: the planner filters the
+  keys instead of looking each one up.
+- Changed: `updateEventRanges` adds to the job's `nEvents` the ranges the call
+  reports finished times the events per range (`SET nEvents=COALESCE(nEvents,0)+:nEvents`),
+  with no query of `JEDI_Events`
+  ([patches/event-count-incremental](patches/event-count-incremental/)). A
+  call repeated after a lost answer adds its ranges again; the pilot's own
+  updates and the close-out set the count outright.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261027T1650Z --rollback`.
+
 ## 2026-10-27: event-count patch rolled back (range updates slowed to seconds)
 
 - By: Claude swf-1, at 16:37:39 UTC, as repair of the change below.

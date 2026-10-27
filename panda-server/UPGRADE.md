@@ -207,7 +207,7 @@ Changes to panda-server itself go to the maintainers as pull requests. A change 
 | `pandaserver/taskbuffer/JediTaskSpec.py` | `12af3251` | the same | 2026-10-27 |
 | `pandajedi/jedirefine/TaskRefinerBase.py` | `9d969ee7` | the same | 2026-10-27 |
 | `pandajedi/jediorder/JobGenerator.py` | `b93afff5` | the same | 2026-10-27 |
-| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `db1563ee` | the same | 2026-10-27 |
+| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `e4a2596b` | the same, and the job event count added per call ([patches/event-count-incremental](patches/event-count-incremental/)) | 2026-10-27 |
 
 The installed tree is compared with its commit before any install, package or file, and the comparison must name exactly the files of this table:
 

@@ -1,0 +1,23 @@
+{
+ "name": "event-count-incremental",
+ "description": "updateEventRanges adds to the job's nEvents the events of the ranges the call reports finished, in place of a recount of the job's finished ranges: the recount walks every range of a fine-grained job on every call, and on PostgreSQL it failed on a :PandaID bind. No query is added.",
+ "edits": {
+  "pandaserver/taskbuffer/db_proxy_mods/task_event_module.py": [
+   [
+    "            # sql to set nEvents\n            sqlS = \"UPDATE ATLAS_PANDA.jobsActive4 \"\n            sqlS += f\"SET nEvents=(SELECT COUNT(1) FROM {panda_config.schemaJEDI}.JEDI_Events \"\n            sqlS += \"WHERE jediTaskID=:jediTaskID AND PandaID=:PandaID AND status IN (:esFinished,:esDone,:esMerged))*:nEvents \"\n            sqlS += \"WHERE PandaID=:pandaID \"\n            if version == 2:\n                sqlS += \"OR jobsetID=:pandaID \"\n",
+    "            # sql to add to nEvents the events of the ranges this call reports finished. A\n            # recount of the job's finished ranges walks every range of a fine-grained job\n            # on every call; the pilot's heartbeat and final update set the count outright.\n            sqlS = \"UPDATE ATLAS_PANDA.jobsActive4 \"\n            sqlS += \"SET nEvents=COALESCE(nEvents,0)+:nEvents \"\n            sqlS += \"WHERE PandaID=:pandaID \"\n            if version == 2:\n                sqlS += \"OR jobsetID=:pandaID \"\n            nFinishedMap = {}\n"
+   ],
+   [
+    "                        # nEvents of finished\n                        if eventStatus in [\"finished\"]:\n                            # get nEvents\n",
+    "                        # nEvents of finished\n                        if eventStatus in [\"finished\"]:\n                            nFinishedMap[pandaID] = nFinishedMap.get(pandaID, 0) + 1\n                            # get nEvents\n"
+   ],
+   [
+    "                varMap = {}\n                varMap[\":pandaID\"] = pandaID\n                varMap[\":jediTaskID\"] = data[\"jediTaskID\"]\n                varMap[\":nEvents\"] = data[\"nEvents\"]\n                varMap[\":esFinished\"] = EventServiceUtils.ST_finished\n                varMap[\":esDone\"] = EventServiceUtils.ST_done\n                varMap[\":esMerged\"] = EventServiceUtils.ST_merged\n                self.cur.execute(sqlS + comment, varMap)\n",
+    "                varMap = {}\n                varMap[\":pandaID\"] = pandaID\n                varMap[\":nEvents\"] = nFinishedMap.get(pandaID, 0) * data[\"nEvents\"]\n                self.cur.execute(sqlS + comment, varMap)\n"
+   ]
+  ]
+ },
+ "restart": [
+  "panda_httpd"
+ ]
+}
