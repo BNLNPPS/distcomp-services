@@ -2,6 +2,34 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-27: the job event count of Event Service jobs updates again (a local patch, on Torre's word)
+
+- By: Claude swf-1, on Torre's word ("must be fixed").
+- Why: `updateEventRanges` commits a job's range updates, then sets the job's
+  `nEvents` from its finished ranges. That statement's subquery named
+  `:PandaID` while its parameters, as everywhere in the module, carry
+  `:pandaID`; PanDA's PostgreSQL cursor matches names exactly, so it raised
+  `KeyError ':PandaID is missing in SQL parameters'` on every update (5,616 on
+  10/26, 14,274 in all retained logs), the job's `nEvents` never moved, and each
+  answer carried a trailing `False`. The batch pilot accepts the answer with or
+  without it.
+- Changed: the one bind, `:PandaID` to `:pandaID`, in `task_event_module.py`
+  (blob `a70df524`), prepared from the installed file with
+  [patches/prepare.py](patches/prepare.py) and
+  [patches/event-count-bind/edits.json](patches/event-count-bind/edits.json) and
+  installed with [patches/host-install.py](patches/host-install.py). Record
+  `/opt/panda/event-count-bind-20261027T1630Z/install.json`; backup beside the
+  file, suffix `.before-event-count-bind-20261027T1630Z`.
+- Restarted `panda_httpd` at 16:17:32 UTC: active, `is_alive` 200; no
+  `missing in SQL parameters` error since.
+- Audit: the retained logs hold no other missing-bind error. A scan of the code
+  for bind names that differ from their parameter keys only in case finds one
+  more, in the HPO path of `_check_task_with_unprocessed_inputs`
+  (`task_complex_module.py`, `:taskid` against `:taskID`), which ePIC does not
+  run; it goes to the maintainers with this fix.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261027T1630Z --rollback`,
+  then restart `panda_httpd`.
+
 ## 2026-10-27: duplicate Harvester_Workers rows removed
 
 - By: Claude swf-1, on Torre's word ("that must be fixed").

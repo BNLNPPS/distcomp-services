@@ -1,0 +1,11 @@
+{
+  "name": "event-count-bind",
+  "description": "updateEventRanges: the job event-count statement binds :pandaID, as the rest of the module does; on PostgreSQL its :PandaID was missing from the parameters (KeyError), so the job's nEvents never updated and each range update's answer carried a trailing False.",
+  "edits": {
+    "pandaserver/taskbuffer/db_proxy_mods/task_event_module.py": [
+      ["            sqlS += \"WHERE jediTaskID=:jediTaskID AND PandaID=:PandaID AND status IN (:esFinished,:esDone,:esMerged))*:nEvents \"\n",
+       "            sqlS += \"WHERE jediTaskID=:jediTaskID AND PandaID=:pandaID AND status IN (:esFinished,:esDone,:esMerged))*:nEvents \"\n"]
+    ]
+  },
+  "restart": ["panda_httpd"]
+}

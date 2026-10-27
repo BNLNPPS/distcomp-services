@@ -196,7 +196,7 @@ Production tasks carry VO `wlcg`: the server was commissioned with the generic J
 
 ## Local changes on the host
 
-Changes to panda-server itself go to the maintainers as pull requests. A change needed before a release is installed on Torre's word as a local patch, file by file (`patches/`), never by reinstalling the package over the host's other changes, and PanDA operations at BNL are notified before it. Every installed file that differs from the installed commit is listed here. A package install (step 5) replaces every one of them; each is carried forward, by re-applying its patch or by a target that contains it, or dropped on purpose, and the choice is logged in CHANGES.md.
+Changes to panda-server itself go to the maintainers as pull requests. A change needed before a release is installed on Torre's word as a local patch, file by file (`patches/`: `prepare.py` builds it from the installed files and a patch's `edits.json`, `host-install.py` installs or rolls it back), never by reinstalling the package over the host's other changes, and PanDA operations at BNL are notified before it. Every installed file that differs from the installed commit is listed here. A package install (step 5) replaces every one of them; each is carried forward, by re-applying its patch or by a target that contains it, or dropped on purpose, and the choice is logged in CHANGES.md.
 
 | Installed | Git blob | Change | Since |
 |---|---|---|---|
@@ -207,7 +207,7 @@ Changes to panda-server itself go to the maintainers as pull requests. A change 
 | `pandaserver/taskbuffer/JediTaskSpec.py` | `12af3251` | the same | 2026-10-27 |
 | `pandajedi/jedirefine/TaskRefinerBase.py` | `9d969ee7` | the same | 2026-10-27 |
 | `pandajedi/jediorder/JobGenerator.py` | `b93afff5` | the same | 2026-10-27 |
-| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `db1563ee` | the same | 2026-10-27 |
+| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `a70df524` | the same, and the job event-count statement's bind ([patches/event-count-bind](patches/event-count-bind/)) | 2026-10-27 |
 
 The installed tree is compared with its commit before any install, package or file, and the comparison must name exactly the files of this table:
 
