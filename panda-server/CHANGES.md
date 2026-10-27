@@ -2,6 +2,21 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-27: event-count patch rolled back (range updates slowed to seconds)
+
+- By: Claude swf-1, at 16:37:39 UTC, as repair of the change below.
+- Why: with the bind fixed, the statement ran for the first time: it recounts
+  the job's finished ranges in `JEDI_Events` on every range update. The plan is
+  an index scan on the job's key, filtered by status, so the count walks every
+  range of the job; fine-grained jobs hold up to millions. Range updates took up
+  to 5 to 8 s each from 16:17 UTC, against about 0.6 s for a 2,000-range report
+  before.
+- Changed: `host-install.py --rollback` restored the file with the fine-grained
+  patch alone (blob `db1563ee`); `panda_httpd` restarted, active, `is_alive` 200.
+  The KeyError and the static job event count return.
+- Next: an event count that adds the ranges a call finishes instead of
+  recounting the job's ranges.
+
 ## 2026-10-27: the job event count of Event Service jobs updates again (a local patch, on Torre's word)
 
 - By: Claude swf-1, on Torre's word ("must be fixed").
