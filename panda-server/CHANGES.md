@@ -28,6 +28,14 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   and JLab refused the read account ("Cannot authenticate"); canary 41489
   went pending at refinement on it. Backup
   `epic_catalogs.json-backup-20261028-vo`; no restart (the map is reread).
+- 14:51 ET: swf-epicprod `a9cc04a2` reinstalled, the map's JLab entry marked
+  `lfn_basename`, `panda_jedi` restarted (18:51:22 UTC, active, no traceback).
+  JEDI's Event Service spec joins its fields with '/'; a JLab path name broke
+  it, the job kept the raw spec in its 80-character `specialhandling` and
+  `storeJobs` rolled back ("value too long for type character varying(80)",
+  canary 41490). Files are now known to JEDI by the name's last component;
+  canary 41491's job 6333770 stored with 6,000 event ranges. Backup
+  `epic_catalogs.json-backup-20261028-basename`.
 - Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
   `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
   `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
