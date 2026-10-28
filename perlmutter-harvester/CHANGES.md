@@ -4,6 +4,25 @@ Every change to the harvester `Perlmutter_test_1` and its configuration,
 newest first: the date, the role that made the change, what changed with its
 motivation, how it was verified, and the rollback copy.
 
+## 2026-10-28: NERSC_Perlmutter_epic_es back to one worker
+
+- By: Claude swf-1, holding production to one node (Torre, 2026-10-28:
+  Perlmutter stays one node).
+- Changed in `panda_queueconfig.json`, queue `NERSC_Perlmutter_epic_es` only:
+  `maxWorkers` 1000 to 1, `nQueueLimitWorker` 100 to 1, the rollback of the
+  change below. Every other setting and queue unchanged.
+- Why: the queue's first Event Service task over EVGEN input (41479,
+  swf-epicprod NERSC_PERLMUTTER.md, EVGEN input in production) made one job
+  per input file at once, nine activated at 09:15 ET, and in pull mode the
+  harvester submits a worker, a whole node, for each activated job. The
+  production system's one-task rule held one task, not one job. With one
+  worker the jobs run one after another. A test beside production needs the
+  limit raised again for its run.
+- Verified: the script's read-back shows both values; owner and mode
+  unchanged (660).
+- Backup: `panda_queueconfig.json-backup-20261028T131649Z`. Rollback:
+  `queueconfig.py set NERSC_Perlmutter_epic_es maxWorkers=1000 nQueueLimitWorker=100 --apply`.
+
 ## 2026-10-27: NERSC_Perlmutter_epic_es worker limits no longer bind
 
 - By: Claude swf-1, on Torre's word that the production system manages
