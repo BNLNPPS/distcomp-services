@@ -4,6 +4,23 @@ Every change to the harvester `Perlmutter_test_1` and its configuration,
 newest first: the date, the role that made the change, what changed with its
 motivation, how it was verified, and the rollback copy.
 
+## 2026-10-28 09:56 ET: NERSC_Perlmutter_epic_es to one worker, task 41479 killed
+
+- By: Claude swf-1, on Torre's order (2026-10-28: "KILL IT", "SET CEILING TO 1").
+- Changed in `panda_queueconfig.json`, queue `NERSC_Perlmutter_epic_es` only:
+  `maxWorkers` 4 to 1. Every other setting and queue unchanged.
+- Why: between the entry below and this one, `maxWorkers` was set to 5, 3 and
+  then 4 (09:43 ET, backup `panda_queueconfig.json-backup-20261028T134306Z`)
+  without entries here. At 4, task 41479 ran four nodes at about 0.43 events/s
+  each (units leaving the node one at a time, about 23 s apart, after
+  reconstruction), its outputs named from the manifest's first row. The task
+  was hard-finished the same minute.
+- Verified: the script's read-back shows `maxWorkers` 1; owner and mode
+  unchanged (660). The harvester applies the file about ten minutes after a
+  change; the worker count in PanDA's harvester_workers confirms it.
+- Backup: `panda_queueconfig.json-backup-20261028T135612Z`. Rollback:
+  `queueconfig.py set NERSC_Perlmutter_epic_es maxWorkers=4 --apply`.
+
 ## 2026-10-28: NERSC_Perlmutter_epic_es back to one worker
 
 - By: Claude swf-1, holding production to one node (Torre, 2026-10-28:
