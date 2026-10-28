@@ -82,6 +82,13 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   submitted, so a `site_staged` queue is reported holding the dataset's files
   on local disk. Canary 41492: broker `nFiles=1`, job 6334180 `activated`,
   input `ready`. Backup `epic_catalogs.json-backup-20261028-staged`.
+- 16:21 ET: swf-epicprod `1ea34b38` installed, `panda_jedi` restarted
+  (20:21:00 UTC): the DDM interface was to give a task's listing the task's
+  own per-file event counts (`epicFileEvents`). It cannot: JEDI runs a DDM
+  interface in a process of its own and sends it the dataset name only, so
+  canary 41496 kept the catalog's counts (one record, run001's first 50,000
+  events; run003 dropped). 16:25 ET: swf-epicprod `d10f0925` installed in its
+  place, the lookup removed, `panda_jedi` restarted (20:25:03 UTC, active).
 - Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
   `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
   `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
