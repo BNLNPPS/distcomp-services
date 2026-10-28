@@ -2,6 +2,21 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-28: the event API log rotates by size, hourly, without a restart (on Torre's word)
+
+- By: Claude swf-1.
+- Why: `panda-api_event.log` is written at DEBUG (global `log_level`) and grew
+  about 5.8 GB a day with one Perlmutter node and Google on 10-event ranges,
+  against 16 GB free on `/var`; the package's daily rotation is the only one
+  and restarts PanDA. Five Perlmutter nodes would fill `/var` between nights.
+- Changed: `/etc/panda/panda-api-event.logrotate` rotates that log alone past
+  2 GB with `copytruncate`, compressed into `/var/log/panda/api_event/`, kept six
+  days; `/etc/cron.d/panda-api-event-logrotate` runs it hourly with its own state
+  file ([api-event-logrotate](api-event-logrotate/README.md)). No PanDA
+  configuration, level or restart changes; the daily entry is unchanged.
+- Verified: logrotate's dry run at install, then the first size rotation.
+- Rollback: `api-event-logrotate/install.sh --remove`.
+
 ## 2026-10-27: the job event count adds each call's finished ranges (a local patch, on Torre's word)
 
 - By: Claude swf-1, installed 16:46:13 UTC, `panda_httpd` restarted, active,

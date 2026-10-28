@@ -1,0 +1,19 @@
+# The PanDA event API log (every Event Service range handed out and reported,
+# at DEBUG) rotated by size, hourly, without restarting PanDA: copytruncate
+# keeps the server's open handle. Rotated copies go to their own directory so
+# the package's daily entry (/etc/logrotate.d/panda_server_jedi.logrotate,
+# which restarts PanDA) neither counts nor trims them. Kept six days.
+# Installed by install.sh in distcomp-services panda-server/api-event-logrotate.
+/var/log/panda/panda-api_event.log {
+    su root root
+    size 2G
+    copytruncate
+    compress
+    dateext
+    dateformat -%Y%m%d-%H%M%S
+    olddir /var/log/panda/api_event
+    rotate 60
+    maxage 6
+    missingok
+    notifempty
+}
