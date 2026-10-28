@@ -38,6 +38,14 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   the executor and the synthetic test identity. The templates remain at
   Torre's approved epic target. The tests now forbid database access,
   and the migration action checks administrator access in its body.
+- Acceptance: task 41495 is done; job 6339107 finished at 20:43:14 UTC,
+  VO epic, label managed, 100 events, no reported errors. It started at
+  20:35:02 UTC, within one second of generation. FULL and RECO each
+  registered one 100-event file, AVAILABLE at BNL-XRD (674,526 and
+  2,638,652 bytes; Adler-32 3ac996bd and 7c4b16c9). The ordinary PanDA
+  log is ready, 79,343 bytes. Exact trial identity and the 37 focused
+  checks are in swf-epicprod/docs/EPIC_VO_MIGRATION.md. This is validation
+  only, without additional campaign production credit.
 
 ## 2026-10-28: JEDI reads inputs from the catalog that holds them (swf_epicprod EpicDDMClient, on Torre's word)
 
