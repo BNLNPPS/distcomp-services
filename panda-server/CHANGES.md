@@ -2,6 +2,43 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-28: epic and legacy wlcg share production regulation
+
+- By: Codex swf-teamcomms, on Torre's renewed instruction to finish the
+  25 October epic-VO migration. Only the ePIC plugin package and its
+  policy changed; panda-server source and PanDA HTTP were unchanged.
+- Installed swf-epicprod cae1d52 as a wheel with `--no-deps
+  --force-reinstall`; wheel SHA-256
+  7844bff802a5ddb184b322c97117da973ea2fb1ef345e701a1d7d710581169f0.
+  `pip check` passed. The shared throttler and existing EpicDDMClient
+  imported successfully as atlpan.
+- The throttler sums equivalent epic and wlcg queues, with one logical
+  grant scope shared across VO names and resource types. Production,
+  test and user queues retain separate scopes. Missing peer queues or
+  failed statistics reads hold generation.
+- Canonical epic POOLS now matches the current production policy:
+  `osg:BNL_OSG_PanDA_1;osg_drain:BNL_OSG_EPIC_PROD_1`. The retired queue
+  remains isolated. MODE stays throttle and the active OSG queued floor
+  stays 3,123. The first SSH invocation lost the text after the semicolon;
+  its nonzero result was detected and the complete value was reapplied
+  and read back before installing the plugin.
+- JEDI generation stopped at 20:00:12 UTC, resumed at 20:03:42 UTC after
+  the old 180-second grant lifetime elapsed. Fresh `REGULATION_OK`
+  records from both VOs show `accounting=epic+wlcg` and the identical
+  managed scope `epic:queue:managed:managed`. JEDI is active. The
+  existing ledger was retained.
+- Preservation: /opt/panda-backup-20261028-epic-vo, a complete copy of
+  /opt/panda taken before the install; the policy readback before the
+  change is retained on swf-testbed under
+  /data/wenauseic/pcs-operations/epic-vo-jedi-config-before.txt.
+- Submission defaults and templates belong to the accompanying PCS
+  cutover (swf-epicprod 237c069). A recovered test prematurely changed
+  19 live templates at 19:59:18 UTC; original records 7150902–7150921
+  (excluding 7150916) are retained, with corrective audit 7152516 naming
+  the executor and the synthetic test identity. The templates remain at
+  Torre's approved epic target. The tests now forbid database access,
+  and the migration action checks administrator access in its body.
+
 ## 2026-10-28: JEDI reads inputs from the catalog that holds them (swf_epicprod EpicDDMClient, on Torre's word)
 
 - By: Claude swf-1, installed 18:34:24 UTC, `panda_jedi` restarted, active,
