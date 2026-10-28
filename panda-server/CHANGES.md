@@ -23,6 +23,11 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   the module logs `start EpicDDMClient` in each JEDI process. The
   ContentsFeeder's "failed to push trigger message" warnings predate the
   restart (108 and 109 in the ten minutes before it).
+- 14:46 ET: the map's JLab entry names `vo: def`. Unnamed, the client took
+  `vo = eic` from the server's `rucio.cfg` (read under JEDI's `VIRTUAL_ENV`)
+  and JLab refused the read account ("Cannot authenticate"); canary 41489
+  went pending at refinement on it. Backup
+  `epic_catalogs.json-backup-20261028-vo`; no restart (the map is reread).
 - Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
   `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
   `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
