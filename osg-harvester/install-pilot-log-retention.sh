@@ -28,7 +28,7 @@ commit=$(git rev-parse --short HEAD)
   chmod 755 $DEST/pilot-log-retention.py.new &&
   mv -f $DEST/pilot-log-retention.py.new $DEST/pilot-log-retention.py &&
   echo $commit > $DEST/COMMIT && chown atlpan:atlpan $DEST/COMMIT'"
-"${SSH[@]}" "sudo -n -u atlpan /usr/bin/python3 $DEST/pilot-log-retention.py --dry-run"
+"${SSH[@]}" "sudo -n runuser -u atlpan -- /usr/bin/python3 $DEST/pilot-log-retention.py --dry-run"
 "${SSH[@]}" "sudo -n tee $CRON >/dev/null" <<EOF
 # epicprod pilot-log retention (distcomp-services osg-harvester, $commit)
 17 * * * * atlpan nice -n 19 ionice -c3 /usr/bin/python3 $DEST/pilot-log-retention.py >/dev/null 2>&1

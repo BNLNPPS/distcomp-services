@@ -47,7 +47,7 @@ cd distcomp-services/osg-harvester && ./install-pilot-log-retention.sh
 The installer copies the script and its `COMMIT` to the host, runs it once
 with `--dry-run` as `atlpan`, and writes the cron entry.
 `./install-pilot-log-retention.sh --remove` removes the cron entry. A manual
-run: `sudo -u atlpan /usr/bin/python3
+run: `sudo runuser -u atlpan -- /usr/bin/python3
 /var/data/atlpan/harvester_common/pilot-log-retention/pilot-log-retention.py
 [--dry-run] [--compress-hours H] [--delete-days D]`. `gunzip` restores a
 compressed log.
