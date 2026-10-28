@@ -2,6 +2,32 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-28: JEDI reads inputs from the catalog that holds them (swf_epicprod EpicDDMClient, on Torre's word)
+
+- By: Claude swf-1, installed 18:34:24 UTC, `panda_jedi` restarted, active,
+  DB schema check OK, seven JediMaster processes, no traceback in
+  `panda_jedi_stderr.log`.
+- Why: ePIC's inputs reside wherever their catalog says (Torre, 2026-10-28:
+  "engineer, all the way down, inputs residing elsewhere"; "Rucio tells you
+  where the data is"). The upstream DDM interface reads one catalog, PanDA's
+  own, so an EVGEN input had to be copied to BNL and registered there.
+- Changed: swf-epicprod `e9721a78` installed (wheel 0.3.0, `--no-deps
+  --force-reinstall`, `pip check` clean). `panda_jedi.cfg` `[ddm]` line 79:
+  `AtlasDDMClient` to `swf_epicprod.jedi.EpicDDMClient:EpicDDMClient` for `wlcg`
+  and `epic`. New `/opt/panda/etc/panda/epic_catalogs.json` (atlpan, 600): the
+  catalog map, `epic` scope names under `/` read from JLab's Rucio with its
+  read account; every other DID on the server's catalog as before.
+- Verified: gate `gate-a754853d` config load, 42 targets, 0 failed; read as
+  atlpan on the host before the install, the eAg 9x115 x_1e-2to1e-1 sample's
+  10 files with events, sizes, adler32 and stable GUIDs; after the restart
+  the module logs `start EpicDDMClient` in each JEDI process. The
+  ContentsFeeder's "failed to push trigger message" warnings predate the
+  restart (108 and 109 in the ten minutes before it).
+- Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
+  `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
+  `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
+  saved package, restart `panda_jedi`.
+
 ## 2026-10-28: the event API log rotates by size, hourly, without a restart (on Torre's word)
 
 - By: Claude swf-1.
