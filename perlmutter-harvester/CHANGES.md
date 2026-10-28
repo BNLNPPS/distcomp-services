@@ -4,6 +4,24 @@ Every change to the harvester `Perlmutter_test_1` and its configuration,
 newest first: the date, the role that made the change, what changed with its
 motivation, how it was verified, and the rollback copy.
 
+## 2026-10-28 13:15 ET: NERSC_Perlmutter_epic_es to three workers
+
+- By: Claude swf-1, on Torre's order (2026-10-28 12:37 ET, dialog
+  01a1835f: "get us into smooth production with evgen input and 3 nodes in
+  use"; 13:03 ET, 01a18377: start on 3 nodes once canary 41481 passes).
+- Changed in `panda_queueconfig.json`, queue `NERSC_Perlmutter_epic_es` only:
+  `maxWorkers` 1 to 3, `nQueueLimitWorker` 1 to 3, so the three workers may
+  wait in Slurm together rather than one after another. Every other setting
+  and queue unchanged.
+- Why: Event Service production over EVGEN input on three nodes. The front's
+  node target for the queue (`front.queue.NERSC_Perlmutter_epic_es.nodes`) is
+  set with it; the front feed is turned on only after the canary's checks.
+- Verified: the script's read-back shows both at 3; owner and mode unchanged
+  (33294, 660). The harvester applies the file about ten minutes after a
+  change; the worker count in PanDA's harvester_workers confirms it.
+- Backup: `panda_queueconfig.json-backup-20261028T171528Z`. Rollback:
+  `queueconfig.py set NERSC_Perlmutter_epic_es maxWorkers=1 nQueueLimitWorker=1 --apply`.
+
 ## 2026-10-28 09:56 ET: NERSC_Perlmutter_epic_es to one worker, task 41479 killed
 
 - By: Claude swf-1, on Torre's order (2026-10-28: "KILL IT", "SET CEILING TO 1").
