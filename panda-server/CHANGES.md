@@ -97,6 +97,11 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   canary 41496 kept the catalog's counts (one record, run001's first 50,000
   events; run003 dropped). 16:25 ET: swf-epicprod `d10f0925` installed in its
   place, the lookup removed, `panda_jedi` restarted (20:25:03 UTC, active).
+- 20:00 ET: the map's JLab entry `site_staged` gains `BNL_ePIC_GOOGLE_es`
+  (Google stages a task's EVGEN input in its cluster's bucket before the task
+  starts, swf-epicprod docs/GKE_PILOT_FLOW.md, EVGEN input); the interface
+  rereads the map when it changes, no restart. Backup
+  `epic_catalogs.json-backup-20261028-google`.
 - Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
   `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
   `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
