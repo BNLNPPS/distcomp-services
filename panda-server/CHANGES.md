@@ -36,6 +36,15 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   canary 41490). Files are now known to JEDI by the name's last component;
   canary 41491's job 6333770 stored with 6,000 event ranges. Backup
   `epic_catalogs.json-backup-20261028-basename`.
+- 14:57 ET: swf-epicprod `7fc2ceb7` reinstalled, the map's JLab entry given
+  `site_staged: ["NERSC_Perlmutter_epic_es"]`, `panda_jedi` restarted
+  (18:57:44 UTC, active). Canary 41491's job stored but stayed `defined`:
+  JEDI marks an input `ready`, and so activates the job, only for a file its
+  DDM interface reports at the site, and JLab lists no replica at NERSC.
+  Perlmutter stages a task's whole input at NERSC before the task is
+  submitted, so a `site_staged` queue is reported holding the dataset's files
+  on local disk. Canary 41492: broker `nFiles=1`, job 6334180 `activated`,
+  input `ready`. Backup `epic_catalogs.json-backup-20261028-staged`.
 - Rollback: `/opt/panda-backup-20261028-epicddm` holds the previous
   `swf_epicprod` package and `panda_jedi.cfg`; the live file's backup is
   `panda_jedi.cfg-backup-20261028-epicddm`. Restore the line, reinstall the
