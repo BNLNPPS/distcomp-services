@@ -4,6 +4,23 @@ Every change to the harvester `Perlmutter_test_1` and its configuration,
 newest first: the date, the role that made the change, what changed with its
 motivation, how it was verified, and the rollback copy.
 
+## 2026-10-29 09:14 ET: NERSC_Perlmutter_epic_es to five workers
+
+- By: Claude swf-1, on Torre's order (2026-10-29 ~09:13 ET, swf-1 dialog:
+  "great work on getting perl to this point. go.", on five nodes).
+- Changed in `panda_queueconfig.json`, queue `NERSC_Perlmutter_epic_es` only:
+  `maxWorkers` 3 to 5, `nQueueLimitWorker` 3 to 5. Every other setting and
+  queue unchanged.
+- Why: three-node production since 15:35 ET 10/28 ran 12 of 12 jobs to
+  completion without a failure, with the reconstruction-once check clean on
+  each; five is Torre's maximum for Perlmutter. The front's node target
+  (`front.queue.NERSC_Perlmutter_epic_es.nodes`) is set to 5 with it.
+- Verified: the script's read-back shows both at 5; owner and mode unchanged
+  (33294, 660). The worker count in PanDA's harvester_workers confirms the
+  harvester's application of it.
+- Backup: `panda_queueconfig.json-backup-20261029T131412Z`. Rollback:
+  `queueconfig.py set NERSC_Perlmutter_epic_es maxWorkers=3 nQueueLimitWorker=3 --apply`.
+
 ## 2026-10-28 13:15 ET: NERSC_Perlmutter_epic_es to three workers
 
 - By: Claude swf-1, on Torre's order (2026-10-28 12:37 ET, dialog
