@@ -6,9 +6,9 @@ Since 2026-10-02 `UM_GREX_PanDA_1` and `BNL_OSG_EPIC_PROD_1` run the pilot publi
 
 | Change | Branch | In builds | Upstream |
 |---|---|---|---|
-| Log stage-out fallback: a log whose transfer failed is held through the PCS log-grant service, without failing the job (4 commits, 2026-10-02) | `epic-log-fallback` | epic5 | **outstanding**: `epic-log-fallback-next`, the same change on upstream `next`, tested 2026-10-30; pull request text awaits Torre's word |
-| epic plugin uses the ePIC Rucio configuration when the environment names none (2026-10-02) | `epic-rucio-config` | epic5 | **outstanding**: `epic-rucio-config-next`, the same change on upstream `next`, tested 2026-10-30; pull request text awaits Torre's word |
-| Transfer errors: every exception passes through the timers; authentication and server failures are named (2026-10-02) | `epic-transfer-errors` | epic5 | **outstanding**: `epic-transfer-errors-next`, the same change on upstream `next`, tested 2026-10-30; pull request text awaits Torre's word |
+| Log stage-out fallback: a log whose transfer failed is held through the PCS log-grant service, without failing the job (4 commits, 2026-10-02) | `epic-log-fallback` | epic5 | open: PanDAWMS/pilot3#229 from `epic-log-fallback-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
+| epic plugin uses the ePIC Rucio configuration when the environment names none (2026-10-02) | `epic-rucio-config` | epic5 | open: PanDAWMS/pilot3#230 from `epic-rucio-config-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
+| Transfer errors: every exception passes through the timers; authentication and server failures are named (2026-10-02) | `epic-transfer-errors` | epic5 | open: PanDAWMS/pilot3#231 from `epic-transfer-errors-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
 | The server's debug mode exported to the payload as a file in the work directory (4 commits, 2026-09-24) | `epic-debug-mode-file` | epic5 | merged in a revised form, PanDAWMS/pilot3#224 from `epic-debug-mode-file-next`; the build carries the earlier form |
 | Event Service: the server's api/v1 event methods; ES stage-out client construction | `epic-es-server-api-v1` | epic4, epic5 | merged, PanDAWMS/pilot3#221 |
 | Event Service payload command built with the pilot arguments | `epic-es-payload-command-args` | epic4, epic5 | merged, PanDAWMS/pilot3#220 |
