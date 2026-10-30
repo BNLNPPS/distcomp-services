@@ -4,13 +4,23 @@ Newest first. Every change to Harvester's code goes upstream to HSF/harvester as
 
 ## Local changes on the host
 
-Installed Harvester 0.7.5, under `/opt/harvester/lib/python3.11/site-packages/pandaharvester/`.
+Installed Harvester 0.7.5 from HSF/harvester commit `f44053ba`, under `/opt/harvester/lib/python3.11/site-packages/pandaharvester/`. The comparison of the installed package with that commit ([audit/installed_blobs.py](audit/installed_blobs.py) with [../panda-server/audit/compare.py](../panda-server/audit/compare.py)) must name exactly the files of this table; other differing files are dated backups and an editor copy.
+
+```
+ssh ... "ssh osgsub01 'sudo -n /opt/harvester/bin/python -I -'" < audit/installed_blobs.py > /tmp/installed.json
+python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout>
+```
 
 | File | Change | Since | Upstream |
 |---|---|---|---|
-| `harvestermonitor/htcondor_monitor.py` | a failed schedd query leaves the batch's worker states unchanged and reports the failure, instead of an empty answer that reads every worker as missing; an HTCondor worker of unknown state is kept past `checkTimeout` with a `WORKER_STATE_UNVERIFIED` error | 2026-10-25 | **outstanding**: no branch, no pull request |
-| `harvesterbody/monitor.py` | the same | 2026-10-25 | the same |
-| `harvestermisc/htcondor_utils.py` | the same; a failed command-line query raises | 2026-10-25 | the same |
+| `harvestermonitor/htcondor_monitor.py` | worker safety: a failed schedd query leaves the batch's worker states unchanged and reports the failure, instead of an empty answer that reads every worker as missing; HTCondor workers of unknown state are kept past `checkTimeout`. Regulation: the condor-history age limit has a floor, `monitor.historyMaxAgeFloor` | 2026-10-25; 2026-10-22 | **outstanding**: no branch, no pull request |
+| `harvesterbody/monitor.py` | worker safety: workers of a failed query keep their status, unchecked, with a `WORKER_STATE_UNVERIFIED` message; a worker of unknown state past `checkTimeout` is kept when the plugin sets `preserveUnknownWorkers`. Regulation: the FIFO check interval has a ceiling, `monitor.fifoMaxCheckInterval` | 2026-10-25; 2026-10-22 | **outstanding**: no branch, no pull request |
+| `harvestermisc/htcondor_utils.py` | worker safety: a failed command-line query raises | 2026-10-25 | **outstanding**: no branch, no pull request |
+| `harvesterbody/cacher.py` | regulation: a per-key refresh interval, `cacher.refreshSecondsByKey` (job statistics refreshed faster than the rest) | 2026-10-22 | **outstanding**: no branch, no pull request |
+| `harvesterbody/worker_adjuster.py` | regulation: missing or stale job demand, older than `submitter.jobStatsMaxAge`, holds new pilot submissions (`REGULATION_HOLD`) | 2026-10-22 | **outstanding**: no branch, no pull request |
+| `harvesterbody/propagator.py` | a PanDA kill command marks the job's workers to be killed after 600 seconds, so that HTCondor returns the pilot's stdout first; by PanDA operations at BNL, not recorded beyond the comment in the file | 2026-07-09 | not proposed; uses the existing `delay_seconds` of `mark_workers_to_kill_by_pandaid` |
+
+The regulation changes of 2026-10-22 are installed by swf-epicprod `scripts/configure-osg-regulation.py` and described in swf-epicprod `docs/REGULATION_AUDIT_2026-10-22.md`; each reads a configuration value and does nothing when it is absent.
 
 ## 2026-10-25: a failed schedd query no longer cancels workers (recorded 2026-10-30)
 
