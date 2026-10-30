@@ -198,16 +198,19 @@ Production tasks carry VO `wlcg`: the server was commissioned with the generic J
 
 Changes to panda-server itself go to the maintainers as pull requests. A change needed before a release is installed on Torre's word as a local patch, file by file (`patches/`: `prepare.py` builds it from the installed files and a patch's `edits.json`, `host-install.py` installs or rolls it back), never by reinstalling the package over the host's other changes, and PanDA operations at BNL are notified before it. Every installed file that differs from the installed commit is listed here. A package install (step 5) replaces every one of them; each is carried forward, by re-applying its patch or by a target that contains it, or dropped on purpose, and the choice is logged in CHANGES.md.
 
-| Installed | Git blob | Change | Since |
-|---|---|---|---|
-| the package, commit `a754853d` of `wenaus/panda-server` | | image-aware dispatch, `container_name` on `acquire_jobs`; pull request branch `container-image-dispatch` | 2026-10-23 |
-| `pandaserver/dataservice/setupper_dummy_plugin.py` | `2ce099fc` | upstream master's version, newer than the installed commit, restored by PanDA operations at BNL | 2026-10-23 |
-| `pandaserver/taskbuffer/db_proxy_mods/job_complex_module.py` | `36025657` | new dispatch to a terminal worker parent refused | 2026-10-25 |
-| `pandaserver/taskbuffer/task_split_rules.py` | `be92bff9` | fine-grained ranges of several events ([patches/fine-grained-range-size](patches/fine-grained-range-size/)) | 2026-10-27 |
-| `pandaserver/taskbuffer/JediTaskSpec.py` | `12af3251` | the same | 2026-10-27 |
-| `pandajedi/jedirefine/TaskRefinerBase.py` | `9d969ee7` | the same | 2026-10-27 |
-| `pandajedi/jediorder/JobGenerator.py` | `b93afff5` | the same | 2026-10-27 |
-| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `e4a2596b` | the same, and the job event count added per call ([patches/event-count-incremental](patches/event-count-incremental/)) | 2026-10-27 |
+| Installed | Git blob | Change | Since | Upstream |
+|---|---|---|---|---|
+| the package, commit `a754853d` of `wenaus/panda-server` | | image-aware dispatch, `container_name` on `acquire_jobs`; pull request branch `container-image-dispatch` | 2026-10-23 | merged, PanDAWMS/panda-server#838 |
+| `pandaserver/dataservice/setupper_dummy_plugin.py` | `2ce099fc` | upstream master's version, newer than the installed commit, restored by PanDA operations at BNL | 2026-10-23 | in master |
+| `pandaserver/taskbuffer/db_proxy_mods/job_complex_module.py` | `36025657` | new dispatch to a terminal worker parent refused | 2026-10-25 | **outstanding**: no branch, no pull request; hard-codes the `ATLAS_PANDA` schema |
+| `pandaserver/taskbuffer/task_split_rules.py` | `be92bff9` | fine-grained ranges of several events ([patches/fine-grained-range-size](patches/fine-grained-range-size/)) | 2026-10-27 | **outstanding**: no pull request; the branch `fine-grained-range-size` was created from master but never committed, so the patch's `edits.json` is the only source |
+| `pandaserver/taskbuffer/JediTaskSpec.py` | `12af3251` | the same | 2026-10-27 | the same |
+| `pandajedi/jedirefine/TaskRefinerBase.py` | `9d969ee7` | the same | 2026-10-27 | the same |
+| `pandajedi/jediorder/JobGenerator.py` | `b93afff5` | the same | 2026-10-27 | the same |
+| `pandaserver/taskbuffer/db_proxy_mods/task_event_module.py` | `e4a2596b` | the same, and the job event count added per call ([patches/event-count-incremental](patches/event-count-incremental/)) | 2026-10-27 | **outstanding**: no branch, no pull request; the count change alters Event Service accounting for every PanDA user |
+| `pandaserver/taskbuffer/db_proxy_mods/task_complex_module.py` | `f45dd897` | a resume clears the paused superStatus and DEFT status ([patches/resume-superstatus](patches/resume-superstatus/)) | 2026-10-29 | **outstanding**: branch `epic-resume-superstatus` off master, not pushed; no pull request |
+
+The Upstream column tracks each change to its pull request (Torre, 2026-10-29: every change to PanDA code goes upstream). A row marked outstanding has no merged pull request. Also outstanding, not installed here: the case-mismatched bind in the HPO path of `_check_task_with_unprocessed_inputs` found with the event-count fix (CHANGES.md, 2026-10-27), to go to the maintainers.
 
 The installed tree is compared with its commit before any install, package or file, and the comparison must name exactly the files of this table:
 

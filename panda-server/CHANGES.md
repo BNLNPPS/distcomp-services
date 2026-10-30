@@ -2,6 +2,47 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-29: a resume clears the paused superStatus (a local patch, on Torre's word)
+
+- By: Claude swf-1, on Torre's word.
+- Why: task 41525 ran with `superStatus` `paused` after its resume at 21:41 UTC,
+  read as a sign the task was still paused. `getTasksToExecCommand_JEDI` carries
+  out a resume as the status `dummy` (`commandStatusMap`: back to `oldStatus`),
+  and its T_TASK and superStatus update tests the new status for running, ready
+  or scouting after paused, so it never fired on a resume: that branch of the
+  test was unreachable. A resumed task kept `paused` in both until its next
+  status change. Dispatch was unaffected (the job dispatcher does not read the
+  field; only the workflow step handler does).
+- Changed: the update is judged on the status the task lands in
+  (`actualNewStatus`, now computed before it), writing the values the existing
+  branch was written to write. Only resume behaves differently: avalanche and
+  release also map to `dummy` but set their own status or none
+  ([patches/resume-superstatus](patches/resume-superstatus/)). Upstream master
+  carries the same code.
+- Installed 00:39:41 UTC on 2026-10-30, outside `host-install.py`: an ad hoc
+  script with the same exactly-once match, the backup beside the file (suffix
+  `.before-resume-superstatus-20261030T003941Z`, the name `host-install.py`
+  gives) and a compile check; no `install.json` record. SHA-256 before
+  `56e0b134…`, after `b4b557de…` (blob `f45dd897`). `prepare.py` with the patch's
+  `edits.json` rebuilds the installed file byte for byte from the backup.
+- Restarted `panda_jedi` at 00:39:58 UTC: active, JediMaster processes running,
+  no error in the stdout log tail, `getTasksToExecCommand_JEDI` cycling at
+  00:40:08 UTC.
+- 41525 corrected after the restart with the server's own `setDeftStatus_JEDI`
+  and `setSuperStatus_JEDI`, guarded on status `running` and superStatus
+  `paused`: read back `running` / `running`.
+- Audit after the install (`audit/`): eight files differ from `a754853d`, the
+  seven listed before and this one; UPGRADE.md's table now lists it.
+- Not yet verified: a resume through the patched path.
+- Deviations from UPGRADE.md, Local changes on the host: installed without
+  `host-install.py`, and PanDA operations at BNL were not notified before the
+  install.
+- Upstream: branch `epic-resume-superstatus` off PanDAWMS/panda-server master
+  carries the identical change lines (checked against the live diff); not yet
+  pushed; the pull request is to follow at Torre's word.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261030T003941Z --rollback`
+  from a bundle `prepare.py` builds from the backup, then restart `panda_jedi`.
+
 ## 2026-10-28: epic and legacy wlcg share production regulation
 
 - By: Codex swf-teamcomms, on Torre's renewed instruction to finish the
