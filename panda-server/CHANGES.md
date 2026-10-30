@@ -33,7 +33,7 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   `paused`: read back `running` / `running`.
 - Audit after the install (`audit/`): eight files differ from `a754853d`, the
   seven listed before and this one; UPGRADE.md's table now lists it.
-- Not yet verified: a resume through the patched path.
+- Verified on 2026-10-30: task 41470's resume at 09:47:42 UTC wrote the DEFT status (`setDeftStatus_JEDI` in the JEDI log), which the unpatched path never did.
 - Deviations from UPGRADE.md, Local changes on the host: installed without
   `host-install.py`, and PanDA operations at BNL were not notified before the
   install.
