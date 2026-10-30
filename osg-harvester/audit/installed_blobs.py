@@ -1,5 +1,5 @@
 import hashlib, json, os, sys
-# Run on osgsub01 with Harvester's Python; compare with panda-server/audit/compare.py.
+# Run on osgsub01 or pandaharvester01 with Harvester's Python; compare with panda-server/audit/compare.py.
 SP = '/opt/harvester/lib/python3.11/site-packages'
 PACKAGES = ['pandaharvester']
 out = {}

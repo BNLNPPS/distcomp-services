@@ -5,7 +5,7 @@ Procedures and change records for the distributed computing services hosted at B
 | Service | Host | Documents |
 |---|---|---|
 | PanDA server and JEDI | `pandaserver01.sdcc.bnl.gov` | [panda-server/UPGRADE.md](panda-server/UPGRADE.md), [panda-server/CHANGES.md](panda-server/CHANGES.md) |
-| harvester | `pandaharvester01.sdcc.bnl.gov` | |
+| harvester | `pandaharvester01.sdcc.bnl.gov` | [harvester/CHANGES.md](harvester/CHANGES.md) |
 | OSG harvester | `osgsub01.sdcc.bnl.gov` | [osg-harvester/README.md](osg-harvester/README.md), [osg-harvester/CHANGES.md](osg-harvester/CHANGES.md) |
 | Perlmutter harvester | NERSC Perlmutter login node | [perlmutter-harvester/README.md](perlmutter-harvester/README.md), [perlmutter-harvester/CHANGES.md](perlmutter-harvester/CHANGES.md) |
 | PanDA monitor | `pandamon01.sdcc.bnl.gov` | [panda-monitor/CHANGES.md](panda-monitor/CHANGES.md) |
