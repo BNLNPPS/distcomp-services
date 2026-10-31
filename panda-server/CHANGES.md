@@ -2,6 +2,35 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-31: `panda_jedi` restarted after a worker ran out of file descriptors
+
+- By: Claude swf-1, on Torre's approval (2026-10-31, 02:01 ET), at swf-watch's
+  request under the standing service-recovery authority
+  (swf-epicprod `docs/EPICPROD_OPS.md`, Torre, 25 October 2026).
+- Why: JEDI stopped working at 00:42 UTC on 2026-10-31 (20:42 ET 10-30).
+  `panda_jedi_stderr.log` at 00:42:19 UTC: `OSError: [Errno 24] Too many open
+  files` in `multiprocessing/resource_sharer.py`; from then on every
+  JediTaskBuffer call failed with "received 0 items of ancdata", the JEDI
+  logs stopped at 00:44:17 UTC, and no managed job was created after
+  00:33 UTC. The JediMaster processes were alive. JEDI worker 1149361 held
+  1,021 descriptors of its 1,024 soft limit, 988 of them pipes; workers
+  1149365, 1149355 and 1149364 held 917, 915 and 876. The processes had
+  run since the nightly rotation restart at 07:43 UTC on 10-30, so the leak
+  is about 1,000 pipes in 17 hours in some JEDI agent; which one is not yet
+  known. The pressure front held every queue meanwhile (no verified
+  throttler decision).
+- Changed: `sudo systemctl restart panda_jedi` at 06:01:18 UTC. No file
+  changed.
+- Verified: `panda_jedi` active, `DB schema check: OK`, 27 JediMaster
+  processes; JediDBProxy, JobGenerator, TaskRefiner, ContentsFeeder and
+  EpicProdJobThrottler logs writing from 06:02 UTC; `REGULATION_OK vo=epic
+  mode=throttle` at 06:02:18 UTC; no new stderr output. First new job
+  6562827 (task 41494, NERSC_Perlmutter_epic_es) created 06:01:34 UTC; 932
+  managed jobs created by 06:02:23 UTC, 924 of them for task 41631 at
+  UM_GREX_PanDA_1.
+- Open: find the leaking agent (descriptor counts per JediMaster process
+  over the day) before the next rotation leaves it 17 hours to fill.
+
 ## 2026-10-29: a resume clears the paused superStatus (a local patch, on Torre's word)
 
 - By: Claude swf-1, on Torre's word.
