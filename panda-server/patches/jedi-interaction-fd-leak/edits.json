@@ -1,0 +1,23 @@
+{
+ "name": "jedi-interaction-fd-leak",
+ "description": "A task-buffer child recycled after a thousand calls (or on an error) was reaped with os.waitpid, so its multiprocessing.Process record stayed among the caller's children for good, holding the child's pipe end and its sentinel pipe: two descriptors per recycle. A busy caller reached the 1,024 soft limit and JEDI stopped (2026-10-31). launchChild closes the parent's copy of the child's end after the start; a killed child is reaped through its multiprocessing record (join, close), falling back to os.waitpid for a pid not started here. Branch wenaus/panda-server jedi-interaction-fd-leak.",
+ "edits": {
+  "pandajedi/jedicore/Interaction.py": [
+   [
+    "def dumpStdOut(sender: str, message: str) -> None:\n    timeNow = naive_utcnow()\n    print(f\"{str(timeNow)} {sender}: INFO    {message}\")\n",
+    "def dumpStdOut(sender: str, message: str) -> None:\n    timeNow = naive_utcnow()\n    print(f\"{str(timeNow)} {sender}: INFO    {message}\")\n\n\n# wait for a killed child process\ndef reap_child(pid: int) -> None:\n    # A child this process started is reaped through its multiprocessing record, which\n    # releases the record and the sentinel pipe it holds. Reaped by os.waitpid alone, the\n    # record stays among multiprocessing's children for the life of the process, and every\n    # recycle leaves two pipes open until the process runs out of file descriptors\n    for proc in multiprocessing.active_children():\n        if proc.pid == pid:\n            proc.join()\n            proc.close()\n            return\n    # not a child started here, or already reaped while listing the children\n    os.waitpid(pid, 0)\n"
+   ],
+   [
+    "                    dumpStdOut(self.className, f\"waiting pid={child_process.pid}\")\n                    os.waitpid(child_process.pid, 0)\n",
+    "                    dumpStdOut(self.className, f\"waiting pid={child_process.pid}\")\n                    reap_child(child_process.pid)\n"
+   ],
+   [
+    "        child_process.daemon = True\n        child_process.start()\n",
+    "        child_process.daemon = True\n        child_process.start()\n        # the child holds its own end now; this process's copy would stay open for good\n        child_conn.close()\n"
+   ]
+  ]
+ },
+ "restart": [
+  "panda_jedi"
+ ]
+}

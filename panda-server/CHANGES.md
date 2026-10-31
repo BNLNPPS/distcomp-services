@@ -2,6 +2,39 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-31: JEDI releases a recycled task-buffer child's pipes (a local patch, on Torre's word)
+
+- By: Claude swf-1, on Torre's word (2026-10-31: "we are BNL panda ops ...
+  install and run it here, be sure all is OK", the pull request after).
+- Why: JEDI left two pipes open in the caller per task-buffer child recycle
+  (the entry below); with the throttler's call volume a JEDI process reached
+  the 1,024 soft limit and JEDI stopped from 00:42 to 06:01 UTC.
+- Changed: `pandajedi/jedicore/Interaction.py`
+  ([patches/jedi-interaction-fd-leak](patches/jedi-interaction-fd-leak/)):
+  `launchChild` closes the parent's copy of the child's pipe end after the
+  start; a killed child is reaped through its multiprocessing record
+  (`reap_child`: join, close), falling back to `os.waitpid` for a pid not
+  started here. Built by `prepare.py` from the installed file, which equals
+  upstream master's; installed by `host-install.py --apply` with stamp
+  `20261031T081620Z` (record
+  `/opt/panda/jedi-interaction-fd-leak-20261031T081620Z/install.json`),
+  SHA-256 before `bbc5b9bf…`, after `e8f1ecfe…` (blob `c64e637d`).
+  `panda_jedi` restarted at 08:16:30 UTC.
+- Verified before the install: through JEDI's own `CommandSendInterface`,
+  five recycles left ten pipes and six process records open with the
+  installed file, none and one (the live child) with the patched one. After
+  the restart: active, `DB schema check: OK`, 28 JediMaster processes, no
+  stderr output. From 08:18:30 to 08:38:30 UTC, 60 recycles (about 120
+  leaked pipes before the patch): the pipes of 19 JediMaster processes
+  unchanged, two up 4 and one down 6, the live connections of the moment;
+  no "failed to terminate", no stderr output. `audit/compare.py`: nine
+  files differ from the installed commit, exactly those of UPGRADE.md's
+  table.
+- Upstream: branch `jedi-interaction-fd-leak` on wenaus/panda-server from
+  master 50078f08; the pull request follows its run here.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261031T081620Z
+  --rollback`, then restart `panda_jedi`.
+
 ## 2026-10-31: the ePIC job throttler reads each setting once a minute (swf-epicprod 677d7db)
 
 - By: Claude swf-1, on Torre's word (2026-10-31: "RESOLVE THIS").
