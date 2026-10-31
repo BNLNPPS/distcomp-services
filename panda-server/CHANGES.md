@@ -2,6 +2,54 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-10-31: the ePIC job throttler reads each setting once a minute (swf-epicprod 677d7db)
+
+- By: Claude swf-1, on Torre's word (2026-10-31: "RESOLVE THIS").
+- Why: the cause of the 00:42 UTC stall below. JEDI recycles a task-buffer
+  child process after 1,000 calls (`pandajedi/jedicore/Interaction.py`,
+  `MethodClass.__call__`) and reaps it with `os.waitpid`, so the
+  `multiprocessing.Process` record of each recycled child stays among the
+  caller's children, holding the child's pipe end and its sentinel pipe:
+  two descriptors per recycle, reproduced through `CommandSendInterface`
+  (five recycles, ten descriptors). The recycles are driven by call volume,
+  and the ePIC throttler read every limit through `getConfigValue` on every
+  pass, up to four keys per limit per site since the shared epic/wlcg policy
+  of 10-28 (cae1d52). Recycles whose last call was `getConfigValue`: 1,918
+  in the log of 10-24, 8,624 in that of 10-29; all recycles 2,651 to 3,350 a
+  day 10-21 to 10-27, 3,972 on 10-28's log, 6,919 on 10-29's, 10,171 on
+  10-30's.
+- Changed: swf-epicprod 677d7db installed as a wheel (`--no-deps
+  --force-reinstall`, SHA-256 4abee9ca…ff815, `/tmp/upgrade-20261031/`),
+  `pip check` clean. The throttler keeps each configuration value, missing
+  ones included, 60 s per process (`CONFIG_TTL_S`). `panda_jedi` restarted
+  at 06:18:13 UTC.
+- Verified: active, `DB schema check: OK`; `EpicProdJobThrottler is ready
+  for epic:any` and `wlcg:any`; 124 `REGULATION_OK` decisions in the first
+  minutes; no stderr output. Recycles 91 in the 32 minutes after the restart
+  (111 in the 16 minutes after the 06:01 restart, before the install).
+  Pipes per JediMaster process from 06:50:42 to 07:00:52 UTC: two grew by 8
+  and 6, the rest not at all; at the faster rate a process reaches about
+  1,200 descriptors in a day, past the soft limit of 1,024 before the
+  nightly rotation restarts it.
+- Also changed, 07:01:36 UTC: the `panda_jedi` unit's soft open-files limit
+  raised from 1,024 to 65,536 by a drop-in,
+  `/etc/systemd/system/panda_jedi.service.d/nofile.conf`
+  (`LimitNOFILE=65536:262144`; the hard limit is the host's existing
+  262,144; no drop-in existed before), `systemctl daemon-reload`. It applies
+  at the next start of `panda_jedi`, the nightly rotation's (07:23 UTC: every
+  JediMaster process at 65,536, no stderr output, the throttler passing work
+  at 07:24:58 UTC). At the measured
+  rate a process needs weeks to reach it, and the rotation restarts JEDI
+  daily. Rollback: remove the file, `systemctl daemon-reload`, restart
+  `panda_jedi`.
+- Open: JEDI's two descriptors per recycle remain. A fix is on
+  `wenaus/panda-server` branch `jedi-interaction-fd-leak` (the parent closes
+  the child's pipe end after start; a killed child is reaped through its
+  multiprocessing record): five recycles leak none. Its pull request and any
+  local install wait for Torre's word.
+- Rollback: reinstall `/tmp/upgrade-20261028/swf_epicprod-0.3.0-py3-none-any.whl`
+  (d10f092) with `--no-deps --force-reinstall`, restart `panda_jedi`.
+
 ## 2026-10-31: `panda_jedi` restarted after a worker ran out of file descriptors
 
 - By: Claude swf-1, on Torre's approval (2026-10-31, 02:01 ET), at swf-watch's
