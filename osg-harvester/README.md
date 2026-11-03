@@ -52,6 +52,29 @@ run: `sudo runuser -u atlpan -- /usr/bin/python3
 [--dry-run] [--compress-hours H] [--delete-days D]`. `gunzip` restores a
 compressed log.
 
+## Vanished workers
+
+The installed worker-safety change ([CHANGES.md](CHANGES.md), 2026-10-25)
+keeps an HTCondor worker of unknown state past `checkTimeout`. A worker
+whose batch job leaves the schedd without the monitor reading its terminal
+record keeps its status and counts against the queue's worker limits; the
+sweeper's kill finds nothing to remove and changes nothing.
+[`reconcile-vanished-workers.py`](reconcile-vanished-workers.py) ends such
+workers as `cancelled`: only those at the given queue and status, submitted
+before a given time, absent from the schedd queue and carrying no PanDA job.
+It changes them through Harvester's own `WorkSpec` and `DBProxy`, so the end
+time is set and PanDA receives the change by the propagator, reports the
+schedd history state of each, and appends one JSON line to
+`/var/data/atlpan/harvester_common/worker-reconcile/reconcile.log`. A failed
+schedd query stops it before anything changes. It is installed in that
+directory; run it first with `--dry-run`:
+
+```bash
+sudo runuser -u atlpan -- bash -c 'set -a; . /opt/harvester/etc/sysconfig/panda_harvester_env; set +a;
+  /opt/harvester/bin/python /var/data/atlpan/harvester_common/worker-reconcile/reconcile-vanished-workers.py \
+  --site BNL_OSG_PanDA_1 --before YYYY-MM-DDTHH:MM --dry-run'
+```
+
 The host's `disk_space_monitor.sh` (atlpan cron, mails the PanDA service
 maintainer when a filesystem passes 85%) fails on every run while `df`
 errors on a dead CVMFS mount (`/cvmfs/cvmfs-config.cern.ch`, 28 October

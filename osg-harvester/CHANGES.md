@@ -24,6 +24,15 @@ The worker-safety change is on branch `htcondor-query-failure-keeps-workers` of 
 
 The regulation changes of 2026-10-22 are installed by swf-epicprod `scripts/configure-osg-regulation.py` and described in swf-epicprod `docs/REGULATION_AUDIT_2026-10-22.md`; each reads a configuration value and does nothing when it is absent. They are on branch `regulation-options` of `wenaus/harvester`, off HSF/harvester master, tested 2026-10-30 (black, isort and flynt; the repository's compile check; each option's own statements run with stubbed boundaries, on the branch and on the four files installed here, with the same results); pull request HSF/harvester#322, opened 2026-10-30. In that form a held submission logs `job statistics missing or older than jobStatsMaxAge=...` instead of `REGULATION_HOLD`, which nothing reads.
 
+## 2026-11-03: 421 vanished BNL_OSG_PanDA_1 workers ended as cancelled
+
+- **By:** ePIC production operations (swf-1), on Torre Wenaus's word (dialog, 2026-11-03 ~10:30 ET).
+- **Why:** Harvester held 421 `BNL_OSG_PanDA_1` workers as `submitted`, submitted 2026-10-31 17:23-17:56 UTC. The schedd held none of them and its history recorded all 421 as removed. The worker-safety change keeps an HTCondor worker of unknown state past `checkTimeout`, and the sweeper's kill, repeated every cycle since, found nothing to remove and changed nothing, so the 421 counted against the queue's waiting limit of 600: Harvester submitted no pilot for activated jobs (four canary jobs waited from 2026-11-03 03:07 ET) and could have added at most 179.
+- **What:** [reconcile-vanished-workers.py](reconcile-vanished-workers.py), installed in `/var/data/atlpan/harvester_common/worker-reconcile/`, run as `atlpan` with `--site BNL_OSG_PanDA_1 --before 2026-11-01T00:00` at 15:16 UTC: 421 candidates, schedd queue empty, none carrying a PanDA job, history `removed` for all 421; 421 set to `cancelled` with Harvester's `WorkSpec.set_status` and `DBProxy.update_worker` (condition: status still `submitted`), diagnostic "batch job removed (condor history) and absent from the schedd". Record line in `reconcile.log` there.
+- **Verified:** the dry run listed exactly the 421 before the change; the run reported 421 ended, none failed. By 15:20 UTC PanDA's `harvester_workers` held the 421 as cancelled, Harvester had submitted 8 new pilots for the queue and 4 were running.
+- **Rollback:** none applicable; the batch jobs no longer exist.
+- **Open:** the worker-safety change retains such workers again whenever a batch job leaves the schedd without the monitor reading its terminal record; this tool is the reconciliation until the monitor ends a killed worker the schedd no longer holds.
+
 ## 2026-10-25: a failed schedd query no longer cancels workers (recorded 2026-10-30)
 
 - **By:** ePIC production operations (swf-2), on Torre Wenaus's word ("INSTALL IT"), after an independent review (swf-3). Recorded here on 2026-10-30 by swf-1: the installation was recorded only in swf-epicprod `docs/HARVESTER_WORKER_STATE.md`.
