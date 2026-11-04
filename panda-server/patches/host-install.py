@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Install, or roll back, a local patch prepared by prepare.py on pandaserver01.
+"""Install, or roll back, a local patch prepared by prepare.py on pandaserver01,
+or with --prefix /opt/harvester on a harvester host.
 
 Run as root with the system Python from the bundle prepare.py wrote, shipped
 to /tmp/upgrade-<date>/ (UPGRADE.md, Rules 1):
@@ -12,7 +13,7 @@ Installs file by file, never a package: each installed file must still read
 the manifest's before-checksum, or nothing is written; each is backed up
 beside itself as <file>.before-<patch>-<stamp> and replaced with
 its owner and mode kept, then read back against the after-checksum. The
-record goes to /opt/panda/<patch>-<stamp>/install.json.
+record goes to <prefix>/<patch>-<stamp>/install.json.
 Imports no server code. The restarts the manifest names are separate.
 """
 import argparse
@@ -24,7 +25,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-SP = Path('/opt/panda/lib/python3.11/site-packages')
+SITE_PACKAGES = 'lib/python3.11/site-packages'
 
 
 def sha256(path):
@@ -47,10 +48,13 @@ def main():
     ap.add_argument('--stamp', required=True)
     ap.add_argument('--apply', action='store_true')
     ap.add_argument('--rollback', action='store_true')
+    ap.add_argument('--prefix', type=Path, default=Path('/opt/panda'),
+                    help='installation prefix holding lib/python3.11/site-packages (default /opt/panda)')
     args = ap.parse_args()
+    SP = args.prefix / SITE_PACKAGES
     manifest = json.loads((args.bundle / 'manifest.json').read_text())
     suffix = f".before-{manifest['patch']}-{args.stamp}"
-    record_dir = Path(f"/opt/panda/{manifest['patch']}-{args.stamp}")
+    record_dir = args.prefix / f"{manifest['patch']}-{args.stamp}"
     rows = []
     for name, sums in manifest['files'].items():
         target, new, backup = SP / name, args.bundle / 'files' / name, SP / (name + suffix)

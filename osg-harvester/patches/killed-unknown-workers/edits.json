@@ -1,0 +1,15 @@
+{
+ "name": "killed-unknown-workers",
+ "description": "The worker-safety change (CHANGES.md, 2026-10-25) keeps an HTCondor worker of unknown state past checkTimeout, including one Harvester has already ordered killed. A worker killed for queuing longer than workerQueueTimeLimit leaves the schedd, the history query skips it once its submission is older than the history age limit, and it kept its status indefinitely against the queue's worker limits (421 ended by hand on 2026-11-03). Such a worker, its kill due, is now ended as cancelled, keeping any pilot error already recorded; a worker without a due kill is kept as before. Upstream: HSF/harvester#321.",
+ "edits": {
+  "pandaharvester/harvesterbody/monitor.py": [
+   [
+    "                            if (getattr(mon_core, \"preserveUnknownWorkers\", False)\n                                    and getattr(workSpec, \"nativeStatus\", None) == \"unknown\"):\n                                tmp_log.error(f\"WORKER_STATE_UNVERIFIED workerID={workerID}: \"\n                                              f\"scheduler state unknown beyond checkTimeout; \"\n                                              f\"retaining {workSpec.status}; {diagMessage}\")\n                                newStatus = workSpec.status\n",
+    "                            if (getattr(mon_core, \"preserveUnknownWorkers\", False)\n                                    and getattr(workSpec, \"nativeStatus\", None) == \"unknown\"):\n                                if workSpec.killTime is not None and workSpec.killTime <= timeNow:\n                                    # Harvester has already ordered the kill, so the scheduler's silence ends the worker\n                                    tmp_log.debug(f\"end workerID={workerID}: killed by Harvester and its batch job no longer in the scheduler\")\n                                    newStatus = WorkSpec.ST_cancelled\n                                    diagMessage = \"Killed by Harvester; batch job no longer in the scheduler. \" + diagMessage\n                                    if not workSpec.has_pilot_error():\n                                        workSpec.set_pilot_error(PilotErrors.FAILEDBYSERVER, diagMessage)\n                                else:\n                                    tmp_log.error(f\"WORKER_STATE_UNVERIFIED workerID={workerID}: \"\n                                                  f\"scheduler state unknown beyond checkTimeout; \"\n                                                  f\"retaining {workSpec.status}; {diagMessage}\")\n                                    newStatus = workSpec.status\n"
+   ]
+  ]
+ },
+ "restart": [
+  "panda_harvester-uwsgi"
+ ]
+}
