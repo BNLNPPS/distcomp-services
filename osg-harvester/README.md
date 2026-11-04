@@ -55,10 +55,11 @@ compressed log.
 ## Vanished workers
 
 The installed worker-safety change ([CHANGES.md](CHANGES.md), 2026-10-25)
-keeps an HTCondor worker of unknown state past `checkTimeout`. A worker
-whose batch job leaves the schedd without the monitor reading its terminal
-record keeps its status and counts against the queue's worker limits; the
-sweeper's kill finds nothing to remove and changes nothing.
+keeps an HTCondor worker of unknown state past `checkTimeout`. Since
+2026-11-04 the monitor ends one whose kill is due as cancelled. A worker
+whose batch job leaves the schedd without a kill order and without the
+monitor reading its terminal record keeps its status and counts against
+the queue's worker limits.
 [`reconcile-vanished-workers.py`](reconcile-vanished-workers.py) ends such
 workers as `cancelled`: only those at the given queue and status, submitted
 before a given time, absent from the schedd queue and carrying no PanDA job.
