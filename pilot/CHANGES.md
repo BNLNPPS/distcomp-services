@@ -6,6 +6,7 @@ Since 2026-10-02 `UM_GREX_PanDA_1` and `BNL_OSG_EPIC_PROD_1` run the pilot publi
 
 | Change | Branch | In builds | Upstream |
 |---|---|---|---|
+| Kernel-log memory scan counts only OOM kills logged after the payload started, not stale kills matched by a reused process id (2026-11-11) | `dmesg-scan-payload-window`, from upstream `next` | none | open: PanDAWMS/pilot3#232, tested and opened 2026-11-12 |
 | Log stage-out fallback: a log whose transfer failed is held through the PCS log-grant service, without failing the job (4 commits, 2026-10-02) | `epic-log-fallback` | epic5 | open: PanDAWMS/pilot3#229 from `epic-log-fallback-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
 | epic plugin uses the ePIC Rucio configuration when the environment names none (2026-10-02) | `epic-rucio-config` | epic5 | open: PanDAWMS/pilot3#230 from `epic-rucio-config-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
 | Transfer errors: every exception passes through the timers; authentication and server failures are named (2026-10-02) | `epic-transfer-errors` | epic5 | open: PanDAWMS/pilot3#231 from `epic-transfer-errors-next`, the same change on upstream `next`, tested and opened 2026-10-30 |
