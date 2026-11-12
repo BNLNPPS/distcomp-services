@@ -34,8 +34,9 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   the table's nine and this file. The last `JEDITimeoutError` before the
   install was at 13:34:45 UTC; a twelve-hour watch for the next one
   follows.
-- Upstream: branch `jedi-site-mapper-before-proxy` on wenaus/panda-server
-  from master 7dfeec64.
+- Upstream: PanDAWMS/panda-server#869, opened 2026-11-12 from
+  `jedi-site-mapper-before-proxy` on wenaus/panda-server (master 7dfeec64),
+  with the text Torre approved; unit tests equal master's.
 - Rollback: `host-install.py --bundle <bundle> --stamp 20261112T172622Z
   --rollback`, then restart `panda_jedi`.
 
