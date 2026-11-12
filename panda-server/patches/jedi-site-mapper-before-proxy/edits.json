@@ -1,0 +1,19 @@
+{
+ "name": "jedi-site-mapper-before-proxy",
+ "description": "A task-buffer child builds JediTaskBuffer with one database proxy. prepareTasksToBeFinished_JEDI and setScoutJobDataToTasks_JEDI took that proxy and then called get_site_mapper(); when the child's mapper was missing or more than ten minutes old, SiteMapper's load_resource_types() waited for the proxy its caller held until the caller's 600 s timeout killed the child: 14 to 23 PostProcessor stalls a day since 2026-11-03 (stack capture 2026-11-11). Both methods now get the site mapper before taking the proxy. Branch wenaus/panda-server jedi-site-mapper-before-proxy.",
+ "edits": {
+  "pandajedi/jedicore/JediTaskBuffer.py": [
+   [
+    "    def setScoutJobDataToTasks_JEDI(self, vo: str | None, prodSourceLabel: str | None) -> bool | None:\n        with self.proxyPool.get() as proxy:\n            tmp_site_mapper = self.get_site_mapper()\n",
+    "    def setScoutJobDataToTasks_JEDI(self, vo: str | None, prodSourceLabel: str | None) -> bool | None:\n        # get the site mapper before taking a proxy: rebuilding it takes one from the same pool,\n        # which holds a single proxy in a task-buffer child process\n        tmp_site_mapper = self.get_site_mapper()\n        with self.proxyPool.get() as proxy:\n"
+   ],
+   [
+    "    ) -> list[int] | None:\n        with self.proxyPool.get() as proxy:\n            tmp_site_mapper = self.get_site_mapper()\n            return proxy.prepareTasksToBeFinished_JEDI(",
+    "    ) -> list[int] | None:\n        # get the site mapper before taking a proxy, as in setScoutJobDataToTasks_JEDI\n        tmp_site_mapper = self.get_site_mapper()\n        with self.proxyPool.get() as proxy:\n            return proxy.prepareTasksToBeFinished_JEDI("
+   ]
+  ]
+ },
+ "restart": [
+  "panda_jedi"
+ ]
+}

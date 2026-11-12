@@ -2,6 +2,43 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-11-12: JEDI gets the site mapper before taking a proxy (a local patch, on Torre's word)
+
+- By: Claude swf-1, on Torre's word (2026-11-12: "yes" to installing it
+  here as a local patch, restarting JEDI, then the upstream pull request).
+  We are PanDA operations at BNL (Torre, 2026-10-31), so the notice of
+  UPGRADE.md is this record.
+- Why: a task-buffer child builds JediTaskBuffer with one database proxy.
+  `prepareTasksToBeFinished_JEDI` and `setScoutJobDataToTasks_JEDI` took
+  that proxy and then called `get_site_mapper()`; when the child's mapper
+  was missing or more than ten minutes old, `SiteMapper`'s
+  `load_resource_types()` waited for the proxy its caller held until the
+  caller's 600 s timeout killed the child. Every `JEDITimeoutError` in
+  `panda_jedi_stdout.log` from 11-03 to 11-12, 14 to 16 a day, is this
+  call, each a ten-minute PostProcessor stall. Found by the stack capture
+  of 11-11 16:18 ET (`diagnostics/jedi-stall-stacks.sh`).
+- Changed: `pandajedi/jedicore/JediTaskBuffer.py`
+  ([patches/jedi-site-mapper-before-proxy](patches/jedi-site-mapper-before-proxy/)):
+  both methods get the site mapper before taking the proxy. Built by
+  `prepare.py` from the installed file, which equals the installed commit
+  (blob `4aeb4538`); installed by `host-install.py --apply` with stamp
+  `20261112T172622Z` (record
+  `/opt/panda/jedi-site-mapper-before-proxy-20261112T172622Z/install.json`),
+  SHA-256 before `4aa70881…`, after `c5d6ca7e…` (blob `e8c226d4`).
+  `panda_jedi` restarted at 17:26:33 UTC.
+- Verified before the install: on 11-12 a focused check blocked with
+  upstream master's two methods and returned with the change. `audit/compare.py`:
+  nine files differed from the installed commit, exactly those of
+  UPGRADE.md's table. After the restart: active, `DB schema check: OK`,
+  27 JediMaster processes, no stderr output; `audit/compare.py` names ten,
+  the table's nine and this file. The last `JEDITimeoutError` before the
+  install was at 13:34:45 UTC; a twelve-hour watch for the next one
+  follows.
+- Upstream: branch `jedi-site-mapper-before-proxy` on wenaus/panda-server
+  from master 7dfeec64.
+- Rollback: `host-install.py --bundle <bundle> --stamp 20261112T172622Z
+  --rollback`, then restart `panda_jedi`.
+
 ## 2026-10-31: JEDI releases a recycled task-buffer child's pipes (a local patch, on Torre's word)
 
 - By: Claude swf-1, on Torre's word (2026-10-31: "we are BNL panda ops ...
