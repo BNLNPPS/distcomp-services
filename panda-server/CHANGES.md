@@ -32,8 +32,9 @@ Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bn
   UPGRADE.md's table. After the restart: active, `DB schema check: OK`,
   27 JediMaster processes, no stderr output; `audit/compare.py` names ten,
   the table's nine and this file. The last `JEDITimeoutError` before the
-  install was at 13:34:45 UTC; a twelve-hour watch for the next one
-  follows.
+  install was at 13:34:45 UTC. A twelve-hour watch of
+  `panda_jedi_stdout.log` from the restart to 05:26 UTC on 11-13 found
+  none, against 14 to 16 a day before.
 - Upstream: PanDAWMS/panda-server#869, opened 2026-11-12 from
   `jedi-site-mapper-before-proxy` on wenaus/panda-server (master 7dfeec64),
   with the text Torre approved; unit tests equal master's.
