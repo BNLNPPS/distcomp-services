@@ -2,6 +2,68 @@
 
 Every change to the PanDA server and JEDI installation on `pandaserver01.sdcc.bnl.gov`, newest first. An entry records the date, the role that made the change, what changed (package versions with commits, configuration files with the motivation), how it was verified, and the rollback copy. Upgrades follow [UPGRADE.md](UPGRADE.md).
 
+## 2026-11-15: host certificate back on InCommon IGTF, certbot renewal held (on Torre's word)
+
+- By: Claude swf-1, on Torre's word (2026-11-15, to reinstalling the
+  InCommon grid certificates and pausing automatic renewal: "1 - do it.").
+- Why: certbot here is run by SDCC's Puppet (root cron `38 1,13 * * *`,
+  `/opt/puppetlabs/puppet/cache/letsencrypt/renew-pandaserver01.sdcc.bnl.gov.sh`,
+  `certbot certonly --keep-until-expiring` against InCommon's ACME service,
+  `acme-us.certinext.io`). At 01:38 ET the service's renewal-info window
+  made certbot renew a certificate valid to 2027-05-06, and the new one
+  came from SSL.com (`SSL.com TLS Issuing RSA CA R1`), which the grid CA
+  set in `/etc/grid-security/certificates` does not contain. The deploy
+  hook installed it. Clients that verify against that set failed: the
+  payload's and the operations agent's token requests
+  (`/api/v1/creds/get_access_token`, CERTIFICATE_VERIFY_FAILED), so stash
+  drains, storage-door cycles and the credential check failed from 01:38
+  ET. osgsub01 and the Perlmutter harvester made no API calls from 01:38
+  ET. They resumed at 22:38 and 22:45 ET, after changes on their side: the
+  Perlmutter harvester's CA bundle was replaced with the SSL.com root
+  alone, by Xin's account (perlmutter-harvester/CHANGES.md, 2026-11-15).
+  pandaharvester01 and pandaharvester02 kept calling throughout.
+- Changed (`certbot-hold.py hold pandaserver01.sdcc.bnl.gov 2`, shipped to
+  `/tmp/certs-20261115/`, 23:34 ET):
+  - `/etc/letsencrypt/renewal/pandaserver01.sdcc.bnl.gov.conf`:
+    `autorenew = False` in `[renewalparams]`. certbot reads it before the
+    renewal-info window, so the Puppet run neither renews nor relinks.
+    Copy of the previous file in the held directory.
+  - `cert3`, `chain3`, `fullchain3` and `privkey3.pem` (SSL.com) moved from
+    the archive to `/etc/letsencrypt-held/pandaserver01.sdcc.bnl.gov-20261115T233401/`.
+    certbot relinks live to the latest archive version, so they cannot stay
+    in the archive.
+  - The live links point at version 2: InCommon RSA IGTF Server CA 4,
+    issued 2026-10-19, valid to 2027-05-06.
+  - The deploy hook `panda-httpd.sh` was run by hand. It kept the SSL.com
+    files in `/opt/panda/etc/certs/backup-2026-11-15-233401/`, installed
+    version 2, passed `httpd -t` as `atlpan` and reloaded gracefully.
+  - pandaserver02 was held the same way, at version 2 (InCommon, valid to
+    2027-05-06). Held directory
+    `/etc/letsencrypt-held/pandaserver02.sdcc.bnl.gov-20261115T233448/`;
+    Apache was reloaded through its deploy hook `reload-apache.sh`, and the
+    certificate it serves verifies against the grid CA set
+    (swf-monitor docs/PRODUCTION_DEPLOYMENT.md, SSL/TLS Configuration).
+  - pandamon01 still serves its SSL.com certificate: this account has no
+    sudo there.
+- Verified: the served certificate is InCommon RSA IGTF Server CA 4 and
+  verifies against `/etc/grid-security/certificates` alone (`openssl
+  s_client -CApath ... -no-CAfile`, return code 0); `is_alive` 200; the
+  credential check from pandaserver02 reads `jlab_token ok` again; the
+  access log after the reload shows only status 200, with requests from
+  pandaharvester01, pandaharvester02 and osgsub01. The Perlmutter
+  harvester, which trusted only SSL.com by then, failed its handshakes
+  until its bundle took both chains at 23:40 ET (perlmutter-harvester/CHANGES.md),
+  then called with status 200. certbot's own reading
+  of the lineage: autorenew disabled, no pending deployment, version 2,
+  `should_autorenew` False.
+- Expiry: with renewal held, nothing renews this certificate before
+  2027-05-06. A grid-trusted replacement (IGTF issuance from SDCC) must be
+  installed before then. The hold can be released only once the ACME
+  service issues from a grid-trusted CA.
+- Rollback: `certbot-hold.py release pandaserver01.sdcc.bnl.gov` (moves the
+  held files back, relinks live to the latest version, removes
+  `autorenew`), then run the deploy hook as above.
+
 ## 2026-11-12: JEDI gets the site mapper before taking a proxy (a local patch, on Torre's word)
 
 - By: Claude swf-1, on Torre's word (2026-11-12: "yes" to installing it

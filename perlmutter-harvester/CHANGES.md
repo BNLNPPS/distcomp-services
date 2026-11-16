@@ -4,6 +4,35 @@ Every change to the harvester `Perlmutter_test_1` and its configuration,
 newest first: the date, the role that made the change, what changed with its
 motivation, how it was verified, and the rollback copy.
 
+## 2026-11-15 23:40 ET: CA bundle trusts both the InCommon and the SSL.com chains
+
+- By: Claude swf-1, repairing a break its own change caused (the PanDA
+  server's certificate put back on InCommon, panda-server/CHANGES.md,
+  2026-11-15).
+- Before: at 22:45 ET, Xin's account replaced `etc/pki/tls/certs/CA-bundles.pem`
+  (the harvester's `ca_cert`) with the SSL.com TLS RSA Root CA 2022 alone,
+  so that the harvester trusted the SSL.com certificate the PanDA server
+  then served. The previous bundle was kept as
+  `CA-bundles.pem-backup-2026-11-15`, holding InCommon RSA IGTF Server CA 4,
+  emSign Root TLS CA - G1, CERN Grid Certification Authority and CERN Root
+  Certification Authority 2. The harvester made no API calls from 01:38 ET,
+  when the server first served the SSL.com certificate, until 22:45 ET.
+- Why: the server went back to its InCommon certificate at 23:34 ET. From
+  then the harvester's TLS handshakes failed (`SSL library error 1 in
+  handshake` from NERSC addresses in the server's error log) and its API
+  calls stopped.
+- Changed: `cabundle.py add CA-bundles.pem-backup-2026-11-15 --apply`
+  appended the four certificates of the previous bundle to the SSL.com
+  root. The bundle now verifies the server under either certificate.
+  Owner and mode unchanged (33294, 660). The API refused to delete the
+  side file `CA-bundles.pem.upload-20261116T043930Z` (HTTP 403 on `rm`);
+  the harvester does not read it.
+- Verified: the live file reads back as the merged bundle, five
+  certificates. The harvester's calls (`acquire_commands`,
+  `report_worker_statistics`, `update_service_metrics`, `add_dialogs`)
+  resumed at 23:40 ET with status 200.
+- Backup: `CA-bundles.pem-backup-20261116T043930Z` (the SSL.com root alone).
+
 ## 2026-10-29 09:14 ET: NERSC_Perlmutter_epic_es to five workers
 
 - By: Claude swf-1, on Torre's order (2026-10-29 ~09:13 ET, swf-1 dialog:

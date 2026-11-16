@@ -23,6 +23,17 @@ NERSC access: per-queue worker counts (`harvester_worker_stats`, including the
 workers it intends to submit, `to_submit`), its messages (`harvester_dialogs`),
 its metrics and its API calls (`panda-api_harvester.log` on `pandaserver01`).
 
+## CA bundle
+
+The harvester verifies the PanDA server against `ca_cert`,
+`etc/pki/tls/certs/CA-bundles.pem` in the installation. Since 2026-11-15 it
+holds the InCommon IGTF chain, the SSL.com root and the CERN CAs, so it
+verifies the server under either issuer. [cabundle.py](cabundle.py) shows
+the bundle's certificates and adds those of another file in the same
+directory (`cabundle.py add <file> --apply`), keeping a dated backup beside
+it. The harvester reads the file on each call, so a change applies without
+a restart.
+
 ## Queue settings
 
 [queueconfig.py](queueconfig.py) reads a queue's settings and changes them:
