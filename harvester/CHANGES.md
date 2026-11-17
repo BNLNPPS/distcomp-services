@@ -13,6 +13,13 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-16: GREX submit template on the short-metric-names pilot runtime
+
+- **By:** Claude swf-1, for Torre Wenaus (hilog work, his go of 2026-11-16).
+- **What:** `/data/atlpan/harvester_common/submit_pilot3_pull_umgrex.sdf` now names runtime `native-grex-shortnames-fabf634` (its asset paths and `+EpicprodNative` only) at 20:58 ET, by swf-epicprod `scripts/retarget-native-grex.py`. The runtime's pilot archive writes its job metrics under short names so the payload's digest fits PanDA's 500 characters. No Harvester code or configuration changed; workers already submitted kept their runtime.
+- **Verified:** payload canary task 42002 / job 6608500 on a new-runtime allocation, healthy, its metrics 381 characters with every field (swf-epicprod `docs/NATIVE_PILOT_CANARY.md`, Short metric names).
+- **Rollback:** the previous template is beside it as `submit_pilot3_pull_umgrex.sdf.before-shortnames-20261117T015813Z` (runtime `native-grex-nosampler-a70e9dd`, still in place).
+
 ## 2026-10-30: installed package compared with its commit
 
 - **By:** Claude swf-1, read only.
