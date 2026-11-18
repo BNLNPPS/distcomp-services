@@ -2,6 +2,12 @@
 
 Newest first. Every change to Harvester's code goes upstream to HSF/harvester as a pull request (Torre Wenaus, 2026-10-29).
 
+## 2026-11-17: BNL_OSG_EPIC_PROD_1 off the obsolete retired pilot
+
+- **By:** Claude swf-9, for Torre Wenaus (his word of 2026-11-17: "GET OBS PILOT REFS OUT OF BNL_OSG_EPIC_PROD_1 IN CASE WE EVER USE IT, AND SO AS NOT TO CONFUSE").
+- **What:** at 22:36 ET the retired queue's entry in `/opt/harvester/etc/panda/panda_queueconfig.json` names the direct-pilot template `BNL_OSG_PanDA_1` uses, `submit_pilot2_pull_bnl_osg.sdf`, and that template's launcher as `executableFile`, in place of its own template (the retired pilot by canary `--piloturl`) and `bnlpanda.runpilot2-wrapper.sh`. `/etc/cron.d/osg-node-guard-clause` now rewrites the one template. The old template is renamed `submit_pilot2_pull_bnl_osg_epicprod.sdf.retired-pilot-20261118T033604Z`. The queue stays `offline`.
+- **Rollback:** `panda_queueconfig.json.before-prod1-direct-20261118T033604Z` beside the configuration; the cron file's copy is `harvester_common/node-guard/osg-node-guard-clause.cron.before-prod1-direct-20261118T033604Z`; rename the template back.
+
 ## Local changes on the host
 
 Installed Harvester 0.7.5 from HSF/harvester commit `f44053ba`, under `/opt/harvester/lib/python3.11/site-packages/pandaharvester/`. The comparison of the installed package with that commit ([audit/installed_blobs.py](audit/installed_blobs.py) with [../panda-server/audit/compare.py](../panda-server/audit/compare.py)) must name exactly the files of this table; other differing files are dated backups and an editor copy.

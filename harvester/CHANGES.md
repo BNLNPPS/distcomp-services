@@ -13,6 +13,13 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-17: JLAB_PanDA_1 on the direct pilot
+
+- **By:** Claude swf-9, for Torre Wenaus (2026-11-17: "THE DIRECT PILOT IS SUPPOSED TO BE FREE OF ATLAS SW DEPENDENCIES"; "WE NEVER EVER EVER USE THE STOCK PILOT AGAIN").
+- **Why:** the retest's canary job 6608533 reached the server, then failed in one second (pilot 1186, then 1310): JLab's launcher `jlab-native-pilot.sh` ran the obsolete retired pilot through `bnlpanda.runpilot2-wrapper.sh`, whose container setup requires `/cvmfs/atlas.cern.ch`, absent on the JLab farm.
+- **What:** at 22:28 ET `/data/atlpan/harvester_common/submit_pilot3_pull_jlab.sdf` is rendered by swf-epicprod `scripts/render-native-jlab.py` from GREX's live template: GREX's direct-pilot runtime `native-grex-shortnames-fabf634` (launcher, archive, helpers, environment, pilot arguments) with one pilot per batch job (`EPICPROD_PILOTS_PER_SLOT=1`, `EPICPROD_ALLOCATION_SECONDS=86400`); JLab's CE, SciTokens authentication with the proxy as an ordinary input, one core, `maxMemory`, `maxWallTime` 1440 and queue data kept. SHA-256 `7c85c4754c96ddc3dc54d800fd42637e302f13ecc285e1627957851da1e9afc2`. The JLab pilots of the old template had all completed.
+- **Rollback:** `submit_pilot3_pull_jlab.sdf.before-native-20261118T032856Z` beside it.
+
 ## 2026-11-17: JLAB_PanDA_1 back online for the retest JLab asked for
 
 - **By:** Claude swf-9, for Torre Wenaus (his word of 2026-11-17: "try again as she asks").
