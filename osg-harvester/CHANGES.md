@@ -2,6 +2,12 @@
 
 Newest first. Every change to Harvester's code goes upstream to HSF/harvester as a pull request (Torre Wenaus, 2026-10-29).
 
+## 2026-11-17: BNL_OSG_PanDA_1's executableFile names the direct-pilot launcher
+
+- **By:** Claude swf-9, for Torre Wenaus (2026-11-17, "change them").
+- **What:** at 22:38 ET `BNL_OSG_PanDA_1` names its template's launcher, `native-local-schedconfig-20261025T151524Z/epic-native-pilot.sh`, as `executableFile` in place of `bnlpanda.runpilot2-wrapper.sh`. The template's `executable` already overrode it; submission is unchanged.
+- **Rollback:** `panda_queueconfig.json.before-exe-direct-20261118T033842Z`.
+
 ## 2026-11-17: BNL_OSG_EPIC_PROD_1 off the obsolete retired pilot
 
 - **By:** Claude swf-9, for Torre Wenaus (his word of 2026-11-17: "GET OBS PILOT REFS OUT OF BNL_OSG_EPIC_PROD_1 IN CASE WE EVER USE IT, AND SO AS NOT TO CONFUSE").

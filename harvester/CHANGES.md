@@ -13,6 +13,12 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-17: executableFile names the direct-pilot launcher
+
+- **By:** Claude swf-9, for Torre Wenaus (2026-11-17, "change them").
+- **What:** at 22:38 ET `UM_GREX_PanDA_1` and `JLAB_PanDA_1` in `panda_queueconfig.json` name their template's launcher, `native-grex-shortnames-fabf634/epicprod-multipilot.sh`, as `executableFile` in place of `bnlpanda.runpilot2-wrapper.sh`. The templates' own `executable` lines already overrode it, so submission is unchanged; the entries no longer name the obsolete retired pilot. A runtime retarget of the template leaves this value naming the previous asset directory until it is set again.
+- **Rollback:** `panda_queueconfig.json.before-exe-direct-20261118T033841Z`.
+
 ## 2026-11-17: JLAB_PanDA_1 on the direct pilot
 
 - **By:** Claude swf-9, for Torre Wenaus (2026-11-17: "THE DIRECT PILOT IS SUPPOSED TO BE FREE OF ATLAS SW DEPENDENCIES"; "WE NEVER EVER EVER USE THE STOCK PILOT AGAIN").
