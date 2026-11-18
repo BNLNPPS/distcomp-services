@@ -13,6 +13,13 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-17: JLAB_PanDA_1 pilots request 6,000 MB
+
+- **By:** Claude swf-9, for Torre Wenaus (his go for the JLab trial, 2026-11-17).
+- **Why:** the pilot asked JLab's Slurm for 2,000 MB while the queue record's `maxrss` is 6,000 MB (swf-epicprod `docs/SCHEDCONFIG_OVERRIDES.md`), so PanDA could hand a pilot a production job larger than its allocation.
+- **What:** at 22:44 ET `submit_pilot3_pull_jlab.sdf` re-rendered with `scripts/render-native-jlab.py --max-memory 6000`; only `+maxMemory` changed. SHA-256 `776148373a45137ef946cda52817ed76ec509dc5f0dce78eb63ddc0102d37307`.
+- **Rollback:** `submit_pilot3_pull_jlab.sdf.before-6000mb-20261118T034407Z`.
+
 ## 2026-11-17: executableFile names the direct-pilot launcher
 
 - **By:** Claude swf-9, for Torre Wenaus (2026-11-17, "change them").
