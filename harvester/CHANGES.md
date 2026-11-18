@@ -13,6 +13,13 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-17: JLAB_PanDA_1 back online for the retest JLab asked for
+
+- **By:** Claude swf-9, for Torre Wenaus (his word of 2026-11-17: "try again as she asks").
+- **Why:** JLab opened the farm's route to `pandaserver01.sdcc.bnl.gov:25443` and asked for a retry (Kathryn Strosahl, 2026-11-17 14:39 ET: "The network change seems to be going through, please try your workflow again"). The queue had been offline since the pause of 2026-10-22, when the farm could not reach the server.
+- **What:** `JLAB_PanDA_1` `queueStatus` `offline` → `online` in `/opt/harvester/etc/panda/panda_queueconfig.json` at 21:52 ET; nothing else changed. Harvester rereads the file within its update interval. A landing probe followed: task 42024, `group.EIC.canary.jlab_panda_1.20261117215310`.
+- **Rollback:** `panda_queueconfig.json.before-jlab-retest-20261118T025244Z` beside it.
+
 ## 2026-11-16: GREX submit template on the short-metric-names pilot runtime
 
 - **By:** Claude swf-1, for Torre Wenaus (hilog work, his go of 2026-11-16).
