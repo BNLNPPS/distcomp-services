@@ -13,6 +13,13 @@ python3 ../panda-server/audit/compare.py /tmp/installed.json <harvester checkout
 
 No code change is installed here, so none is outstanding upstream. The comparison must find no installed file that differs from the commit. The only files not in the commit are two editor copies from 2024-07-04, carried forward through upgrades and never imported: `harvesterbody/master.py~` and `harvestercore/core_utils.py~`.
 
+## 2026-11-18: GREX and JLab on runtime native-grex-pidsearch-e2ee25c
+
+- **By:** Claude swf-1, for Torre Wenaus (his approval of the rollout and its canaries, 2026-11-18).
+- **Why:** the direct pilot held a payload that ends within a fraction of a second for ten minutes on GREX and JLab: the memory monitor's payload search ran its 120 five-second tries on an exited, unreaped payload (swf-epicprod `docs/NATIVE_PILOT_CANARY.md`, The memory monitor's payload search).
+- **What:** runtime `/data/atlpan/harvester_common/native-grex-pidsearch-e2ee25c`, staged by swf-epicprod `scripts/stage-native-runtime.py` at commit `e2ee25c`; pilot archive SHA-256 `61fb982a7855c806592e49bf86e4288177d16f2716f85b37483a0c2e3378a7c3`, built by `pilot/native-canary/build.py --production --heartbeat-seconds 300` from the epic5 baseline. It differs from the previous runtime only in the archive, and the archive from `aad45ad9` only in `utilities.py`, `common.py`, `native_container.py` and an unused helper in `metric_keys.py`. At 22:07:49 ET `submit_pilot3_pull_umgrex.sdf` retargeted by `scripts/retarget-native-grex.py` (SHA-256 `eeaa0f0ea78affc18d0952fa426145a965166fc9c43948c80525b87a8960214a`); at 22:08:08 ET `submit_pilot3_pull_jlab.sdf` re-rendered by `scripts/render-native-jlab.py --max-memory 6000` (SHA-256 `75fd227c4cccfccc20880f4697cbcf97aaefeb727180cebe71ce735dda504f83`). Only asset paths and `+EpicprodNative` changed. Workers already submitted keep their runtime. `panda_queueconfig.json` `executableFile` still names the previous runtime's launcher, which remains in place.
+- **Rollback:** `submit_pilot3_pull_umgrex.sdf.before-pidsearch-20261119T030749Z` and `submit_pilot3_pull_jlab.sdf.before-pidsearch-20261119T030808Z` beside the live templates.
+
 ## 2026-11-17: JLAB_PanDA_1 pilots request 6,000 MB
 
 - **By:** Claude swf-9, for Torre Wenaus (his go for the JLab trial, 2026-11-17).
